@@ -6,26 +6,26 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Driver">
-<meta name="theme-color" content="#0f1620">
-<title>Driver — My Runs</title>
+<meta name="theme-color" content="#2a0707">
+<title>Driver — My Runs TEST v2</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
   :root{
-    --bg:#0f1620; --panel:#161f2c; --panel-2:#1c2735;
-    --line:#27374a; --line-soft:#1f2c3b;
-    --ink:#e8eef5; --ink-dim:#9fb0c2; --ink-faint:#6b7e92;
-    --now:#23c7c2; --now-glow:rgba(35,199,194,.18); --accent:#3ea0ff;
+    --bg:#210606; --panel:#321010; --panel-2:#461717;
+    --line:#743030; --line-soft:#552020;
+    --ink:#fff1f1; --ink-dim:#e4aaaa; --ink-faint:#b97878;
+    --now:#ff3b30; --now-glow:rgba(255,59,48,.24); --accent:#ff6b5f;
     --warn:#ffb454; --danger:#ff6b6b;
-    --ship-bg:#1c3a3a; --ship-ink:#7fe3df;
+    --ship-bg:#5a1717; --ship-ink:#ffb3ad;
     --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   body.light{
-    --bg:#fff7df; --panel:#fff1bd; --panel-2:#ffe69a;
-    --line:#d9b95a; --line-soft:#efd184;
-    --ink:#2f2308; --ink-dim:#6b5418; --ink-faint:#92732a;
-    --now:#c28a00; --now-glow:rgba(194,138,0,.18); --accent:#b07600;
-    --ship-bg:#ffe7a8; --ship-ink:#7a4d00;
+    --bg:#fff0ec; --panel:#ffd6cf; --panel-2:#ffc0b6;
+    --line:#d35f55; --line-soft:#ed9388;
+    --ink:#34100c; --ink-dim:#7e2d25; --ink-faint:#a9473d;
+    --now:#d6261c; --now-glow:rgba(214,38,28,.20); --accent:#c81f16;
+    --ship-bg:#ffd4cd; --ship-ink:#8d1d15;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
@@ -36,14 +36,15 @@
 
   /* header */
   header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
-    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:var(--bg);border-bottom:1px solid var(--line-soft)}
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:linear-gradient(180deg,#3a0909,var(--bg));border-bottom:1px solid var(--line-soft)}
   .me{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:6px 12px 6px 8px;color:var(--ink)}
   .me .dot{width:13px;height:13px;border-radius:50%;flex:none}
   .me b{font-size:14.5px}
   .me small{color:var(--ink-faint);font-size:10px;display:block;line-height:1;margin-bottom:1px;letter-spacing:.1em;text-transform:uppercase}
   .spacer{flex:1}
+  .testv{font-size:10.5px;font-weight:900;letter-spacing:.08em;background:var(--now);color:#fff;border-radius:20px;padding:5px 9px;white-space:nowrap}
   .pill{font-size:10.5px;font-weight:700;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--ink-faint);white-space:nowrap}
-  .pill.live{color:#04201f;background:var(--now);border-color:var(--now)}
+  .pill.live{color:#fff;background:var(--now);border-color:var(--now)}
   .pill.off{color:#3a2a00;background:var(--warn);border-color:var(--warn)}
   .iconbtn{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:18px;display:grid;place-items:center}
   .iconbtn:active{background:var(--panel-2)}
@@ -74,7 +75,7 @@
   .job:active{background:var(--panel-2)}
   .job .jt{font-family:var(--mono);font-size:16px;font-weight:700;width:48px;flex:none}
   .job .jr{flex:1;font-size:14px;line-height:1.35}
-  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#04201f;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
+  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#fff;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
 
   /* bottom sheet */
   .scrim{position:fixed;inset:0;background:rgba(6,10,16,.6);z-index:40;display:none}
@@ -106,7 +107,7 @@
   .setrow input[type=number]{width:78px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center;font-size:15px}
   .btnrow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
   .btn{flex:1;min-width:130px;border-radius:11px;padding:13px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
-  .btn.go{background:var(--now);color:#04201f;border:0}
+  .btn.go{background:var(--now);color:#fff;border:0}
   .btn.danger{color:var(--danger)}
 
   /* driver picker rows */
@@ -140,6 +141,7 @@
   <header>
     <button class="me" id="meBtn"><span class="dot" id="meDot"></span><span><small>Driver</small><b id="meName">—</b></span></button>
     <div class="spacer"></div>
+    <span class="testv">TEST v2</span>
     <span class="pill" id="pill">···</span>
     <button class="iconbtn" id="gear">⚙</button>
   </header>
@@ -171,7 +173,7 @@
 <script type="module">
 "use strict";
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "2.0.0-red-test";
 
 const SUPABASE_URL  = "https://cexzmwucocmqozuqhbeb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNleHptd3Vjb2NtcW96dXFoYmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0OTg0NDgsImV4cCI6MjA5ODA3NDQ0OH0.xZ_Ms8ciJZuGA1xiZjFOWPt_VtkCdT1xHFxZ3bBQ0uM";

@@ -1,4 +1,4 @@
-const CACHE_NAME = "driver-client-v1.0.0";
+const CACHE_NAME = "driver-client-v2.0.0-red-test";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {
