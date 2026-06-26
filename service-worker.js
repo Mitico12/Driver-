@@ -1,30 +1,50 @@
-const CACHE = 'hammerfest-driver-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icons/icon-180.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+const CACHE_NAME = "hammerfest-dispatch-v1.0.0";
+const APP_SHELL = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest"
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
-});
-
-self.addEventListener('activate', event => {
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .catch(() => {})
+      .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("message", event => {
+  if(event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if(request.method !== "GET") return;
+
+  const url = new URL(request.url);
+
+  // Do not cache Supabase / CDN / cross-origin requests. Bookings must stay live.
+  if(url.origin !== self.location.origin) return;
+
+  // For the app itself: try the network first, then fall back to cache.
   event.respondWith(
-    fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy));
-      return response;
-    }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+    fetch(request, { cache: "no-store" })
+      .then(response => {
+        if(response && response.ok){
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(()=>{});
+        }
+        return response;
+      })
+      .catch(() => caches.match(request).then(cached => cached || caches.match("./index.html")))
   );
 });

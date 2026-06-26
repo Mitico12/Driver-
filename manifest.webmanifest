@@ -1,16 +1,10 @@
 {
-  "name": "Hammerfest Driver Runs",
-  "short_name": "My Runs",
-  "description": "Driver schedule for Hammerfest Dispatch",
+  "name": "Hammerfest Dispatch",
+  "short_name": "Dispatch",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0f1620",
   "theme_color": "#0f1620",
-  "icons": [
-    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+  "description": "Hammerfest driver dispatch app"
 }
