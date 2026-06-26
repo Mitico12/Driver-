@@ -1,5 +1,5 @@
-const CACHE_NAME = "driver-client-v2.0.0-red-test";
-const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const CACHE_NAME = "driver-client-v3.0.0-green-test";
+const APP_SHELL = ["./", "./index.html?v=3.0.0-green-test", "./manifest.webmanifest?v=3.0.0-green-test", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {
   self.skipWaiting();
@@ -27,7 +27,7 @@ self.addEventListener("fetch", event => {
     } catch (e) {
       const cached = await caches.match(req);
       if (cached) return cached;
-      if (req.mode === "navigate") return caches.match("./index.html");
+      if (req.mode === "navigate") return caches.match("./index.html?v=3.0.0-green-test");
       throw e;
     }
   })());

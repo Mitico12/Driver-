@@ -6,26 +6,27 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Driver">
-<meta name="theme-color" content="#2a0707">
-<title>Driver — My Runs TEST v2</title>
+<meta name="theme-color" content="#062b12">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Driver — My Runs TEST v3</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
   :root{
-    --bg:#210606; --panel:#321010; --panel-2:#461717;
-    --line:#743030; --line-soft:#552020;
-    --ink:#fff1f1; --ink-dim:#e4aaaa; --ink-faint:#b97878;
-    --now:#ff3b30; --now-glow:rgba(255,59,48,.24); --accent:#ff6b5f;
+    --bg:#06210d; --panel:#0d3418; --panel-2:#174823;
+    --line:#2d7a42; --line-soft:#215b32;
+    --ink:#effff3; --ink-dim:#a7e2b4; --ink-faint:#73b684;
+    --now:#25d366; --now-glow:rgba(37,211,102,.24); --accent:#43e07b;
     --warn:#ffb454; --danger:#ff6b6b;
-    --ship-bg:#5a1717; --ship-ink:#ffb3ad;
+    --ship-bg:#165b2b; --ship-ink:#b9ffd0;
     --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   body.light{
-    --bg:#fff0ec; --panel:#ffd6cf; --panel-2:#ffc0b6;
-    --line:#d35f55; --line-soft:#ed9388;
-    --ink:#34100c; --ink-dim:#7e2d25; --ink-faint:#a9473d;
-    --now:#d6261c; --now-glow:rgba(214,38,28,.20); --accent:#c81f16;
-    --ship-bg:#ffd4cd; --ship-ink:#8d1d15;
+    --bg:#ecfff1; --panel:#d4f8dd; --panel-2:#bff0cb;
+    --line:#62bd78; --line-soft:#93dca4;
+    --ink:#0d3518; --ink-dim:#286b39; --ink-faint:#418f53;
+    --now:#159447; --now-glow:rgba(21,148,71,.20); --accent:#107c39;
+    --ship-bg:#d5f7dc; --ship-ink:#176a32;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
@@ -36,7 +37,7 @@
 
   /* header */
   header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
-    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:linear-gradient(180deg,#3a0909,var(--bg));border-bottom:1px solid var(--line-soft)}
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:linear-gradient(180deg,#083817,var(--bg));border-bottom:1px solid var(--line-soft)}
   .me{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:6px 12px 6px 8px;color:var(--ink)}
   .me .dot{width:13px;height:13px;border-radius:50%;flex:none}
   .me b{font-size:14.5px}
@@ -141,7 +142,7 @@
   <header>
     <button class="me" id="meBtn"><span class="dot" id="meDot"></span><span><small>Driver</small><b id="meName">—</b></span></button>
     <div class="spacer"></div>
-    <span class="testv">TEST v2</span>
+    <span class="testv">TEST v3</span>
     <span class="pill" id="pill">···</span>
     <button class="iconbtn" id="gear">⚙</button>
   </header>
@@ -173,7 +174,7 @@
 <script type="module">
 "use strict";
 
-const APP_VERSION = "2.0.0-red-test";
+const APP_VERSION = "3.0.0-green-test";
 
 const SUPABASE_URL  = "https://cexzmwucocmqozuqhbeb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNleHptd3Vjb2NtcW96dXFoYmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0OTg0NDgsImV4cCI6MjA5ODA3NDQ0OH0.xZ_Ms8ciJZuGA1xiZjFOWPt_VtkCdT1xHFxZ3bBQ0uM";
@@ -187,7 +188,7 @@ catch(e){ console.warn("Offline — Supabase library unavailable.", e); }
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
-      const reg = await navigator.serviceWorker.register("./service-worker.js");
+      const reg = await navigator.serviceWorker.register("./service-worker.js?v=3.0.0-green-test");
       reg.update();
       navigator.serviceWorker.addEventListener("controllerchange", () => {
         if (!window.__driverReloading) {
