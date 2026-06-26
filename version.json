@@ -1,6 +1,6 @@
 {
-  "version": "4.0.0-orange-hard-update",
-  "label": "TEST v4 hard update",
-  "released_at": "2026-06-26T23:59:00Z",
-  "notes": "Navigation is network-first, index is not precached, version.json is fetched with no-store."
+  "version": "5.0.0-normal-hard-update",
+  "label": "Normal colours v5 hard update",
+  "released_at": "2026-06-26T23:56:52.860211Z",
+  "notes": "Reverted driver client colours to the normal dark teal/yellow-light theme while keeping the v4 hard-update engine."
 }

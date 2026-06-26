@@ -6,27 +6,27 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Driver">
-<meta name="theme-color" content="#3a1f00">
+<meta name="theme-color" content="#0f1620">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Driver — My Runs TEST v4</title>
-<link rel="manifest" href="./manifest.webmanifest?v=4.0.0-orange-hard-update">
+<title>Driver — My Runs</title>
+<link rel="manifest" href="./manifest.webmanifest?v=5.0.0-normal-hard-update">
 <style>
   :root{
-    --bg:#231402; --panel:#341f08; --panel-2:#4a2c0b;
-    --line:#9b5d17; --line-soft:#6f4211;
-    --ink:#fff7ec; --ink-dim:#f2c98f; --ink-faint:#c9924b;
-    --now:#ff9f1c; --now-glow:rgba(255,159,28,.26); --accent:#ffb347;
-    --warn:#ffd166; --danger:#ff6b6b;
-    --ship-bg:#5a350d; --ship-ink:#ffe1b3;
+    --bg:#0f1620; --panel:#161f2c; --panel-2:#1c2735;
+    --line:#27374a; --line-soft:#1f2c3b;
+    --ink:#e8eef5; --ink-dim:#9fb0c2; --ink-faint:#6b7e92;
+    --now:#23c7c2; --now-glow:rgba(35,199,194,.18); --accent:#3ea0ff;
+    --warn:#ffb454; --danger:#ff6b6b;
+    --ship-bg:#1c3a3a; --ship-ink:#7fe3df;
     --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   body.light{
-    --bg:#fff4dc; --panel:#ffe6ae; --panel-2:#ffd888;
-    --line:#d99428; --line-soft:#e9bd6a;
-    --ink:#351f03; --ink-dim:#704609; --ink-faint:#a06d17;
-    --now:#c97000; --now-glow:rgba(201,112,0,.20); --accent:#a85800;
-    --ship-bg:#ffe7b5; --ship-ink:#7a4300;
+    --bg:#fff7df; --panel:#fff1bd; --panel-2:#ffe69a;
+    --line:#d9b95a; --line-soft:#efd184;
+    --ink:#2f2308; --ink-dim:#6b5418; --ink-faint:#92732a;
+    --now:#c28a00; --now-glow:rgba(194,138,0,.18); --accent:#b07600;
+    --ship-bg:#ffe7a8; --ship-ink:#7a4d00;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
@@ -37,15 +37,15 @@
 
   /* header */
   header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
-    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:linear-gradient(180deg,#4a2a05,var(--bg));border-bottom:1px solid var(--line-soft)}
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:var(--bg);border-bottom:1px solid var(--line-soft)}
   .me{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:6px 12px 6px 8px;color:var(--ink)}
   .me .dot{width:13px;height:13px;border-radius:50%;flex:none}
   .me b{font-size:14.5px}
   .me small{color:var(--ink-faint);font-size:10px;display:block;line-height:1;margin-bottom:1px;letter-spacing:.1em;text-transform:uppercase}
   .spacer{flex:1}
-  .testv{font-size:10.5px;font-weight:900;letter-spacing:.08em;background:var(--now);color:#fff;border-radius:20px;padding:5px 9px;white-space:nowrap}
+  .testv{font-size:10.5px;font-weight:900;letter-spacing:.08em;background:var(--now);color:#04201f;border-radius:20px;padding:5px 9px;white-space:nowrap}
   .pill{font-size:10.5px;font-weight:700;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--ink-faint);white-space:nowrap}
-  .pill.live{color:#fff;background:var(--now);border-color:var(--now)}
+  .pill.live{color:#04201f;background:var(--now);border-color:var(--now)}
   .pill.off{color:#3a2a00;background:var(--warn);border-color:var(--warn)}
   .iconbtn{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:18px;display:grid;place-items:center}
   .iconbtn:active{background:var(--panel-2)}
@@ -76,7 +76,7 @@
   .job:active{background:var(--panel-2)}
   .job .jt{font-family:var(--mono);font-size:16px;font-weight:700;width:48px;flex:none}
   .job .jr{flex:1;font-size:14px;line-height:1.35}
-  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#fff;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
+  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#04201f;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
 
   /* bottom sheet */
   .scrim{position:fixed;inset:0;background:rgba(6,10,16,.6);z-index:40;display:none}
@@ -108,7 +108,7 @@
   .setrow input[type=number]{width:78px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center;font-size:15px}
   .btnrow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
   .btn{flex:1;min-width:130px;border-radius:11px;padding:13px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
-  .btn.go{background:var(--now);color:#fff;border:0}
+  .btn.go{background:var(--now);color:#04201f;border:0}
   .btn.danger{color:var(--danger)}
 
   /* driver picker rows */
@@ -142,7 +142,7 @@
   <header>
     <button class="me" id="meBtn"><span class="dot" id="meDot"></span><span><small>Driver</small><b id="meName">—</b></span></button>
     <div class="spacer"></div>
-    <span class="testv">TEST v4</span>
+    <span class="testv">v5</span>
     <span class="pill" id="pill">···</span>
     <button class="iconbtn" id="gear">⚙</button>
   </header>
@@ -174,7 +174,7 @@
 <script type="module">
 "use strict";
 
-const APP_VERSION = "4.0.0-orange-hard-update";
+const APP_VERSION = "5.0.0-normal-hard-update";
 
 const SUPABASE_URL  = "https://cexzmwucocmqozuqhbeb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNleHptd3Vjb2NtcW96dXFoYmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0OTg0NDgsImV4cCI6MjA5ODA3NDQ0OH0.xZ_Ms8ciJZuGA1xiZjFOWPt_VtkCdT1xHFxZ3bBQ0uM";
@@ -372,7 +372,7 @@ function openSettings(){
   const p=prefs;
   openSheet(`
     <h3>Settings</h3>
-    <div class="sub">Version 4.0.0-orange-hard-update. Reminders fire while this app is open. Background alerts arrive once it's installed to your home screen.</div>
+    <div class="sub">Version 5.0.0-normal-hard-update. Reminders fire while this app is open. Background alerts arrive once it's installed to your home screen.</div>
     <div class="setrow"><div class="lab"><b>Reminders</b><small>Master switch.</small></div>
       <label class="switch"><input type="checkbox" id="s_en" ${p.enabled?"checked":""}><span class="slider"></span></label></div>
     <div class="setrow"><div class="lab"><b>Remind me before each run</b><small>Minutes before departure.</small></div>

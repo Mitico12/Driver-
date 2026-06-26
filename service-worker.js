@@ -1,4 +1,4 @@
-const CACHE_NAME = "driver-client-runtime-4.0.0-orange-hard-update";
+const CACHE_NAME = "driver-client-runtime-5.0.0-normal-hard-update";
 const OFFLINE_FALLBACK = "./index.html?offline=1";
 
 self.addEventListener("install", event => {
