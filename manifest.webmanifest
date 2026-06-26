@@ -1,13 +1,21 @@
 {
-  "name": "Driver — My Runs",
-  "short_name": "Driver",
-  "start_url": "./",
+  "name": "Driver \u2014 My Runs TEST v4",
+  "short_name": "Driver v4",
+  "start_url": "./index.html?v=4.0.0-orange-hard-update",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0f1620",
-  "theme_color": "#0f1620",
+  "background_color": "#231402",
+  "theme_color": "#ff9f1c",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

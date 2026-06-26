@@ -1,0 +1,6 @@
+{
+  "version": "4.0.0-orange-hard-update",
+  "label": "TEST v4 hard update",
+  "released_at": "2026-06-26T23:59:00Z",
+  "notes": "Navigation is network-first, index is not precached, version.json is fetched with no-store."
+}
