@@ -2,33 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hammerfest Dispatch — Prototype 1</title>
-<meta name="theme-color" content="#0f1620">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Dispatch">
+<meta name="apple-mobile-web-app-title" content="Driver">
+<meta name="theme-color" content="#0f1620">
+<title>Driver — My Runs</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
   :root{
-    --bg:#0f1620;            /* deep arctic slate */
-    --panel:#161f2c;
-    --panel-2:#1c2735;
-    --line:#27374a;
-    --line-soft:#1f2c3b;
-    --ink:#e8eef5;
-    --ink-dim:#9fb0c2;
-    --ink-faint:#6b7e92;
-    --now:#23c7c2;           /* cold arctic cyan */
-    --now-glow:rgba(35,199,194,.18);
-    --accent:#3ea0ff;
-    --warn:#ffb454;
-    --danger:#ff6b6b;
-    --ok:#4cc38a;
-    --header:rgba(15,22,32,.92);
-    --ship-bg:#1c3a3a;
-    --ship-ink:#7fe3df;
-    --radius:10px;
+    --bg:#0f1620; --panel:#161f2c; --panel-2:#1c2735;
+    --line:#27374a; --line-soft:#1f2c3b;
+    --ink:#e8eef5; --ink-dim:#9fb0c2; --ink-faint:#6b7e92;
+    --now:#23c7c2; --now-glow:rgba(35,199,194,.18); --accent:#3ea0ff;
+    --warn:#ffb454; --danger:#ff6b6b;
+    --ship-bg:#1c3a3a; --ship-ink:#7fe3df;
     --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
@@ -37,1276 +25,383 @@
     --line:#d9b95a; --line-soft:#efd184;
     --ink:#2f2308; --ink-dim:#6b5418; --ink-faint:#92732a;
     --now:#c28a00; --now-glow:rgba(194,138,0,.18); --accent:#b07600;
-    --warn:#b56200; --danger:#b83928; --ok:#568c28;
-    --header:rgba(255,247,223,.92);
-    --ship-bg:#ffe7a3; --ship-ink:#6f4b00;
+    --ship-bg:#ffe7a8; --ship-ink:#7a4d00;
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
-  body{
-    background:var(--bg);color:var(--ink);font-family:var(--sans);
-    font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
-  }
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
   button{font-family:inherit;cursor:pointer}
-  input,select,textarea{font-family:inherit}
+  input,select{font-family:inherit}
+  .wrap{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
 
-  /* ---------- top bar ---------- */
-  header{
-    position:sticky;top:0;z-index:30;
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:10px 16px;background:var(--header);
-    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
-  }
-  .brand{display:flex;align-items:baseline;gap:9px;margin-right:4px}
-  .brand b{font-size:15px;letter-spacing:.2px}
-  .brand span{font-size:11px;color:var(--ink-faint);letter-spacing:.12em;text-transform:uppercase}
-  .roleswitch{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .roleswitch button{
-    background:transparent;border:0;color:var(--ink-dim);
-    padding:7px 14px;font-size:13px;font-weight:600
-  }
-  .roleswitch button.on{background:var(--accent);color:#06243f}
+  /* header */
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:var(--bg);border-bottom:1px solid var(--line-soft)}
+  .me{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:6px 12px 6px 8px;color:var(--ink)}
+  .me .dot{width:13px;height:13px;border-radius:50%;flex:none}
+  .me b{font-size:14.5px}
+  .me small{color:var(--ink-faint);font-size:10px;display:block;line-height:1;margin-bottom:1px;letter-spacing:.1em;text-transform:uppercase}
   .spacer{flex:1}
-  .driverpick{display:flex;align-items:center;gap:8px}
-  .driverpick select{
-    background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
-    border-radius:8px;padding:7px 10px;font-size:13px;font-weight:600
-  }
-  .ghost{
-    background:var(--panel-2);color:var(--ink-dim);border:1px solid var(--line);
-    border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:600
-  }
-  .ghost:hover{color:var(--ink);border-color:var(--ink-faint)}
-  .primary{
-    background:var(--now);color:#04201f;border:0;border-radius:8px;
-    padding:8px 14px;font-size:13px;font-weight:700
-  }
-  .primary:hover{filter:brightness(1.06)}
+  .pill{font-size:10.5px;font-weight:700;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--ink-faint);white-space:nowrap}
+  .pill.live{color:#04201f;background:var(--now);border-color:var(--now)}
+  .pill.off{color:#3a2a00;background:var(--warn);border-color:var(--warn)}
+  .iconbtn{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:18px;display:grid;place-items:center}
+  .iconbtn:active{background:var(--panel-2)}
 
-  /* ---------- date / week nav ---------- */
-  .navbar{
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    padding:12px 16px;border-bottom:1px solid var(--line-soft)
-  }
-  .navbar .arrow{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
-    width:34px;height:34px;border-radius:8px;font-size:16px;display:grid;place-items:center
-  }
-  .navbar .arrow:hover{border-color:var(--ink-faint)}
-  .navtitle{font-size:18px;font-weight:700;letter-spacing:.2px;min-width:230px}
-  .navtitle small{display:block;font-size:11.5px;color:var(--ink-faint);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-  .navbar input[type=date]{
-    background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
-    border-radius:8px;padding:7px 10px
-  }
-  .filter{position:relative}
-  .filter .ghost.open,.filter .ghost:hover{color:var(--ink);border-color:var(--ink-faint)}
-  .filterpanel{position:absolute;top:42px;left:0;z-index:25;display:none;min-width:184px;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:6px;
-    box-shadow:0 14px 34px rgba(0,0,0,.5)}
-  .filter.open .filterpanel{display:block}
-  .filterpanel .ph{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding:6px 10px 4px}
-  .filteritem{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--ink);user-select:none}
-  .filteritem:hover{background:var(--panel)}
-  .filteritem input{accent-color:var(--now);width:16px;height:16px;margin:0}
+  /* week nav */
+  .weeknav{display:flex;align-items:center;gap:8px;padding:12px 16px 6px}
+  .weeknav .arr{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:20px;display:grid;place-items:center}
+  .weeknav .wlabel{flex:1;text-align:center}
+  .weeknav .wlabel b{font-size:15px;display:block}
+  .weeknav .wlabel small{font-size:11px;color:var(--ink-faint)}
+  .thisweek{display:block;margin:2px 16px 4px;text-align:center}
+  .thisweek button{background:transparent;border:0;color:var(--accent);font-size:12.5px;font-weight:600;padding:6px}
 
-  main{padding:0 16px 80px}
+  main{flex:1;padding:6px 12px calc(env(safe-area-inset-bottom) + 40px)}
 
-  /* ---------- central day board ---------- */
-  .dayhead{display:flex;align-items:baseline;gap:14px;margin:18px 2px 10px}
-  .dayhead .count{color:var(--ink-faint);font-size:13px}
-  .daytotal{margin-left:auto;font-variant-numeric:tabular-nums}
-  .daytotal b{font-size:18px;color:var(--now)}
-  .daytotal span{font-size:11px;color:var(--ink-faint);letter-spacing:.1em;text-transform:uppercase;display:block;text-align:right}
+  .day{background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;margin:10px 0;overflow:hidden}
+  .day.today{border-color:var(--now);box-shadow:0 0 0 1px var(--now-glow)}
+  .day.free{background:transparent;border-style:dashed;border-color:var(--line-soft)}
+  .dayhd{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line-soft)}
+  .day.free .dayhd{border-bottom:0}
+  .dayhd .dn{font-size:14px;font-weight:700;text-transform:capitalize}
+  .dayhd .dn .td{color:var(--now);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-left:6px}
+  .dayhd .early{color:var(--warn);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .nojobs{padding:10px 14px;color:var(--ink-faint);font-size:13px}
+  .job{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;
+    border-top:1px solid var(--line-soft);border-left:3px solid var(--c,#3ea0ff);padding:13px 14px;color:var(--ink)}
+  .day .job:first-of-type{border-top:0}
+  .job:active{background:var(--panel-2)}
+  .job .jt{font-family:var(--mono);font-size:16px;font-weight:700;width:48px;flex:none}
+  .job .jr{flex:1;font-size:14px;line-height:1.35}
+  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#04201f;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
 
-  .board{position:relative;border-left:2px solid var(--line);margin-left:62px}
-  .nowline{position:absolute;left:-64px;right:0;height:0;border-top:1px dashed var(--now);z-index:2;pointer-events:none}
-  .nowline::before{content:"now";position:absolute;left:-2px;top:-9px;font-size:9.5px;color:var(--now);
-    background:var(--bg);padding:0 5px;letter-spacing:.14em;text-transform:uppercase}
+  /* bottom sheet */
+  .scrim{position:fixed;inset:0;background:rgba(6,10,16,.6);z-index:40;display:none}
+  .scrim.show{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:480px;margin:0 auto;
+    background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);
+    padding:8px 18px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(100%);transition:transform .22s ease;max-height:88vh;overflow:auto}
+  .sheet.show{transform:none}
+  .grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:6px auto 12px}
+  .sheet h3{margin:2px 0 2px;font-size:19px}
+  .sheet .sub{color:var(--ink-faint);font-size:13px;margin-bottom:14px}
+  .kv{display:grid;grid-template-columns:84px 1fr;gap:8px 12px;margin:6px 0}
+  .kv dt{color:var(--ink-faint);font-size:12.5px;padding-top:2px}
+  .kv dd{margin:0;font-size:15px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;padding:3px 10px 3px 7px;border-radius:20px;color:#06121e}
+  .chip i{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.3)}
 
-  .drive{
-    position:relative;display:flex;gap:14px;align-items:stretch;
-    margin:0 0 8px;padding:11px 14px;background:var(--panel);
-    border:1px solid var(--line-soft);border-left:3px solid var(--c,#3ea0ff);
-    border-radius:0 var(--radius) var(--radius) 0;cursor:pointer;transition:background .12s,border-color .12s
-  }
-  .drive:hover{background:var(--panel-2);border-color:var(--line)}
-  .drive .time{
-    position:absolute;left:-62px;width:50px;text-align:right;
-    font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);padding-top:1px
-  }
-  .drive .time::after{content:"";position:absolute;right:-15px;top:6px;width:9px;height:9px;border-radius:50%;
-    background:var(--c,#3ea0ff);box-shadow:0 0 0 3px var(--bg)}
-  .drive .body{flex:1;min-width:0}
-  .drive .route{font-weight:600;font-size:14px;color:var(--ink);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .drive .meta{margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--ink-dim);font-size:12.5px}
-  .tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.02em;white-space:nowrap}
-  .tag.ship{background:var(--ship-bg);color:var(--ship-ink)}
-
-  /* driver picker in the form */
-  .driver-section{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel-2));padding:14px;margin:14px 0}
-  .driver-head{width:100%;display:flex;align-items:center;gap:12px;margin:0;background:transparent;border:0;color:var(--ink);text-align:left;padding:0;cursor:pointer}
-  .driver-head:hover .driver-title b{color:var(--now)}
-  .driver-title{flex:1;min-width:0}
-  .driver-title b{display:block;font-size:18px;color:var(--ink);transition:color .12s}
-  .driver-title small{display:block;color:var(--ink-faint);font-size:12.5px;margin-top:2px}
-  .driver-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--now);background:var(--now-glow);border:1px solid rgba(35,199,194,.35);font-size:19px;flex:none}
-  .driver-summary{display:flex;align-items:center;gap:9px;flex:none}
-  .driver-count{border:1px solid rgba(35,199,194,.35);background:var(--now-glow);color:var(--now);border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:800;white-space:nowrap}
-  .driver-arrow{color:var(--now);font-size:16px;font-weight:900;line-height:1;transition:transform .18s ease}
-  .driver-section.open .driver-arrow{transform:rotate(180deg)}
-  .driver-body{overflow:hidden;max-height:0;opacity:0;padding-top:0;transition:max-height .22s ease,opacity .18s ease,padding-top .18s ease}
-  .driver-section.open .driver-body{max-height:640px;opacity:1;padding-top:14px}
-  .drvsearch{position:relative;margin-bottom:10px}
-  .drvsearch::before{content:"⌕";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:22px;color:var(--ink-faint);line-height:1}
-  .drvsearch input{width:100%;background:rgba(15,22,32,.35);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px 14px 12px 42px;font-size:14.5px;outline:0}
-  .drvsearch input:focus{border-color:var(--now);box-shadow:0 0 0 3px var(--now-glow)}
-  .drvbox{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:270px;overflow:auto;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent}
-  .drvrow{display:flex;align-items:center;gap:11px;min-height:48px;padding:10px 11px;border:1px solid var(--line-soft);border-radius:11px;background:rgba(15,22,32,.22);cursor:pointer;font-size:14px;font-weight:650;user-select:none;color:var(--ink);transition:background .12s,border-color .12s,transform .12s}
-  .drvrow:hover{background:var(--panel);border-color:var(--line)}
-  .drvrow:active{transform:scale(.99)}
-  .drvrow input{accent-color:var(--now);width:19px;height:19px;margin:0;flex:none}
-  .drvrow:has(input:checked){border-color:rgba(35,199,194,.55);background:var(--now-glow)}
-  .drvrow .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
-  .drvrow .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .drvempty{grid-column:1/-1;color:var(--ink-faint);font-size:13px;text-align:center;padding:18px;border:1px dashed var(--line);border-radius:11px}
-  .drvadd{display:flex;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--line-soft)}
-  .drvadd input{flex:1;background:rgba(15,22,32,.35);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;min-width:0}
-  .drvadd input:focus{outline:0;border-color:var(--now);box-shadow:0 0 0 3px var(--now-glow)}
-  .drvadd button{background:var(--now);color:#04201f;border:0;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:800}
-  .driver-hint{display:flex;align-items:center;gap:8px;color:var(--ink-faint);font-size:12.5px;margin-top:10px}
-
-  .choice-section{margin-top:11px}
-  .choice-section .driver-icon{font-size:17px}
-  .choice-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:230px;overflow:auto;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent}
-  .choicerow{display:flex;align-items:center;gap:11px;min-height:46px;padding:10px 11px;border:1px solid var(--line-soft);border-radius:11px;background:rgba(15,22,32,.22);cursor:pointer;font-size:14px;font-weight:650;user-select:none;color:var(--ink);transition:background .12s,border-color .12s,transform .12s}
-  .choicerow:hover{background:var(--panel);border-color:var(--line)}
-  .choicerow:active{transform:scale(.99)}
-  .choicerow input{accent-color:var(--now);width:18px;height:18px;margin:0;flex:none}
-  .choicerow:has(input:checked){border-color:rgba(35,199,194,.55);background:var(--now-glow)}
-  .choicerow .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .choice-section.open .driver-body{max-height:520px}
-  @media (max-width:560px){.choice-options{grid-template-columns:1fr}}
-  .driver-hint::before{content:"i";width:17px;height:17px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--now);color:var(--now);font-size:11px;font-weight:800;flex:none}
-  @media (max-width:560px){.drvbox{grid-template-columns:1fr}.driver-head{align-items:flex-start}.driver-count{margin-top:3px}}
-  .pax{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-size:12px;font-weight:700}
-  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
-    padding:2px 8px 2px 6px;border-radius:20px;color:#06121e}
-  .chip i{width:7px;height:7px;border-radius:50%;background:rgba(0,0,0,.35)}
-  .price{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--ink-dim);font-variant-numeric:tabular-nums;align-self:center}
-
-  .empty{padding:40px 12px;text-align:center;color:var(--ink-faint);border:1px dashed var(--line);border-radius:var(--radius)}
-  .empty b{display:block;color:var(--ink-dim);margin-bottom:4px;font-size:15px}
-
-  /* ---------- driver week ---------- */
-  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:14px}
-  .wcol{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);min-height:120px;display:flex;flex-direction:column}
-  .wcol.today{border-color:var(--now);box-shadow:0 0 0 1px var(--now-glow)}
-  .wcol h4{margin:0;padding:8px 10px;border-bottom:1px solid var(--line-soft);font-size:12px;color:var(--ink-dim);display:flex;justify-content:space-between;align-items:baseline}
-  .wcol h4 b{color:var(--ink);font-size:17px;font-weight:700}
-  .wcol h4 .early{color:var(--warn);font-size:10px;font-weight:800;letter-spacing:.06em}
-  .wbody{padding:7px;display:flex;flex-direction:column;gap:6px;flex:1}
-  .wjob{background:var(--panel-2);border:1px solid var(--line-soft);border-left:3px solid var(--c,#3ea0ff);border-radius:6px;padding:7px 8px;cursor:pointer}
-  .wjob:hover{border-color:var(--line)}
-  .wjob .wt{font-family:var(--mono);font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
-  .wjob .wt .px{font-size:11px;color:var(--now);font-weight:800}
-  .wjob .wr{font-size:12px;color:var(--ink-dim);margin-top:3px;line-height:1.35}
-  .wnone{color:var(--ink-faint);font-size:11.5px;text-align:center;padding:14px 0}
-
-  /* ---------- detail / form modal ---------- */
-  .scrim{position:fixed;inset:0;background:rgba(6,10,16,.62);z-index:50;display:none;align-items:stretch;justify-content:flex-end}
-  .scrim.show{display:flex}
-  .sheet{
-    width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
-    height:100%;overflow:auto;animation:slide .18s ease;padding:18px 18px 36px
-  }
-  @keyframes slide{from{transform:translateX(24px);opacity:.5}to{transform:none;opacity:1}}
-  .sheet h3{margin:0 0 2px;font-size:18px}
-  .sheet .sub{color:var(--ink-faint);font-size:12.5px;margin-bottom:16px}
-  .close{position:absolute;top:14px;right:14px}
-  .kv{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;margin:10px 0}
-  .kv dt{color:var(--ink-faint);font-size:12px;padding-top:2px}
-  .kv dd{margin:0;font-size:13.5px;color:var(--ink)}
-  .pax-names{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:13px;line-height:1.55}
-  .rowbtns{display:flex;gap:8px;margin-top:18px}
-
-  .field{margin:11px 0}
-  .field label{display:block;font-size:11.5px;color:var(--ink-dim);font-weight:600;margin-bottom:5px;letter-spacing:.02em}
-  .field input,.field select,.field textarea{
-    width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
-    border-radius:8px;padding:9px 11px;font-size:13.5px
-  }
-  .field textarea{resize:vertical;min-height:60px}
-  .field .hint{font-size:11px;color:var(--ink-faint);margin-top:4px}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-  /* ---------- settings ---------- */
-  .settings{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);padding:16px 18px;margin-top:16px}
-  .settings h3{margin:0 0 4px;font-size:15px}
-  .settings .muted{color:var(--ink-faint);font-size:12.5px;margin-bottom:14px}
-  .setrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line-soft)}
+  .setrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line-soft)}
   .setrow:first-of-type{border-top:0}
   .setrow .lab{flex:1}
-  .setrow .lab b{display:block;font-size:13.5px}
+  .setrow .lab b{display:block;font-size:14.5px}
   .setrow .lab small{color:var(--ink-faint);font-size:12px}
-  .switch{position:relative;width:42px;height:24px;flex:none}
+  .switch{position:relative;width:46px;height:27px;flex:none}
   .switch input{opacity:0;width:0;height:0}
   .slider{position:absolute;inset:0;background:var(--line);border-radius:20px;transition:.15s}
-  .slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+  .slider::before{content:"";position:absolute;width:21px;height:21px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
   .switch input:checked + .slider{background:var(--now)}
-  .switch input:checked + .slider::before{transform:translateX(18px)}
-  .setrow input[type=number]{width:72px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;text-align:center}
+  .switch input:checked + .slider::before{transform:translateX(19px)}
+  .setrow input[type=number]{width:78px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center;font-size:15px}
+  .btnrow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+  .btn{flex:1;min-width:130px;border-radius:11px;padding:13px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
+  .btn.go{background:var(--now);color:#04201f;border:0}
+  .btn.danger{color:var(--danger)}
 
+  /* driver picker rows */
+  .pickrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:11px;padding:12px 14px;margin:7px 0;color:var(--ink);font-size:15px}
+  .pickrow .dot{width:12px;height:12px;border-radius:50%}
+  .pickrow:active{background:var(--panel)}
+  .addme{display:flex;gap:8px;margin-top:10px}
+  .addme input{flex:1;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px}
 
-  /* ---------- records manager ---------- */
-  .record-tabs{display:flex;gap:7px;margin:14px 0 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:5px}
-  .record-tabs button{flex:1;background:transparent;border:0;border-radius:9px;color:var(--ink-dim);padding:9px 8px;font-weight:750;font-size:12.5px}
-  .record-tabs button.on{background:var(--now);color:#201600}
-  .record-add{display:flex;gap:8px;margin:8px 0 12px}
-  .record-add input{flex:1;min-width:0;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px}
-  .record-add input:focus{outline:0;border-color:var(--now);box-shadow:0 0 0 3px var(--now-glow)}
-  .record-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-  .record-row{display:flex;align-items:center;gap:9px;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:12px;padding:10px 11px}
-  .record-row .dot{width:11px;height:11px;border-radius:50%;flex:none}
-  .record-row b{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .record-row small{color:var(--ink-faint);font-size:11.5px;white-space:nowrap}
-  .record-row button{background:transparent;border:1px solid var(--line);border-radius:8px;color:var(--ink-dim);padding:6px 8px;font-size:12px;font-weight:700}
-  .record-row button:hover{color:var(--ink);border-color:var(--ink-faint)}
-  .record-row button.danger{color:var(--danger)}
-  .record-empty{color:var(--ink-faint);text-align:center;border:1px dashed var(--line);border-radius:12px;padding:20px;margin-top:10px}
-
-  /* ---------- toasts ---------- */
-  .toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(420px,92vw)}
-  .toast{width:100%;background:var(--panel-2);border:1px solid var(--now);border-left:4px solid var(--now);border-radius:10px;padding:11px 14px;box-shadow:0 8px 30px rgba(0,0,0,.45);animation:pop .2s ease}
-  .toast b{display:block;font-size:13.5px;color:var(--ink)}
-  .toast span{font-size:12.5px;color:var(--ink-dim)}
-  @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
-
-  .syncpill{font-size:11px;font-weight:700;letter-spacing:.04em;border:1px solid var(--line);border-radius:20px;
-    padding:5px 11px;color:var(--ink-faint);user-select:none;white-space:nowrap}
-  .syncpill.live{color:#04201f;background:var(--now);border-color:var(--now)}
-  .syncpill.off{color:#3a2a00;background:var(--warn);border-color:var(--warn)}
-
-  .login{position:fixed;inset:0;z-index:100;display:none;place-items:center;background:var(--bg)}
+  /* login */
+  .login{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:var(--bg);padding:20px}
   .login.show{display:grid}
-  .loginbox{width:min(360px,92vw);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-  .loginbox h2{margin:0 0 2px;font-size:20px}
-  .loginsub{color:var(--ink-faint);font-size:13px;margin:0 0 16px}
-  .loginerr{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px}
+  .loginbox{width:min(380px,100%)}
+  .loginbox h2{margin:0 0 2px;font-size:23px}
+  .loginsub{color:var(--ink-faint);font-size:14px;margin:0 0 20px}
+  .field{margin:12px 0}
+  .field label{display:block;font-size:12px;color:var(--ink-dim);font-weight:600;margin-bottom:6px}
+  .field input{width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px}
+  .login .btn.go{width:100%;margin-top:6px}
+  .loginerr{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
 
-  .fab{position:fixed;right:20px;bottom:20px;z-index:40}
-  .fab button{background:var(--now);color:#04201f;border:0;border-radius:30px;padding:13px 20px;font-size:14px;font-weight:800;box-shadow:0 8px 26px rgba(35,199,194,.3)}
-
-  @media (max-width:880px){
-    .week{grid-template-columns:1fr;gap:8px}
-    .wcol{min-height:auto}
-    .board{margin-left:54px}
-    .drive .time{left:-54px;width:44px}
-    .nowline{left:-56px}
-    .navtitle{min-width:0}
-  }
+  /* toasts */
+  .toasts{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;width:min(440px,92vw)}
+  .toast{background:var(--panel-2);border:1px solid var(--now);border-left:4px solid var(--now);border-radius:12px;padding:13px 15px;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+  .toast b{display:block;font-size:14px}
+  .toast span{font-size:13px;color:var(--ink-dim)}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="brand"><b>Hammerfest&nbsp;Dispatch</b><span>Prototype&nbsp;1</span></div>
-  <div class="roleswitch" id="roleswitch">
-    <button data-role="central" class="on">Central</button>
-    <button data-role="driver">Driver</button>
+<div class="wrap">
+  <header>
+    <button class="me" id="meBtn"><span class="dot" id="meDot"></span><span><small>Driver</small><b id="meName">—</b></span></button>
+    <div class="spacer"></div>
+    <span class="pill" id="pill">···</span>
+    <button class="iconbtn" id="gear">⚙</button>
+  </header>
+  <div class="weeknav">
+    <button class="arr" id="prevW">‹</button>
+    <div class="wlabel"><b id="wRange">—</b><small id="wCount">—</small></div>
+    <button class="arr" id="nextW">›</button>
   </div>
-  <div class="driverpick" id="driverpick" style="display:none">
-    <span style="color:var(--ink-faint);font-size:12px">Signed in as</span>
-    <select id="driverSelect"></select>
-  </div>
-  <div class="spacer"></div>
-  <button class="ghost" id="recordsBtn">Records</button>
-  <button class="ghost" id="jumpSample">Sample week</button>
-  <button class="ghost" id="resetData" title="Clear stored data and reload the seed">Reset</button>
-  <button class="ghost" id="themeBtn" title="Switch colour theme">☀ Light</button>
-  <span id="syncPill" class="syncpill" title="Sync status">···</span>
-  <button class="ghost" id="signOut" style="display:none">Sign out</button>
-</header>
+  <div class="thisweek"><button id="thisW">Jump to this week</button></div>
+  <main id="days"></main>
+</div>
 
-<div class="navbar" id="navbar"></div>
-<main id="main"></main>
-
-<div class="fab" id="fab"><button id="newBtn">+ New driving</button></div>
-
-<div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
-<div class="toasts" id="toasts"></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"></div>
 
 <div class="login" id="login">
   <div class="loginbox">
-    <h2>Hammerfest Dispatch</h2>
-    <p class="loginsub">Sign in to load the shared schedule.</p>
+    <h2>My runs</h2>
+    <p class="loginsub">Sign in to load your schedule.</p>
     <div class="field"><label>Email</label><input id="lg_email" type="email" autocomplete="username" placeholder="you@example.com"></div>
     <div class="field"><label>Password</label><input id="lg_pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-    <button class="primary" id="lg_btn" style="width:100%;margin-top:6px">Sign in</button>
+    <button class="btn go" id="lg_btn">Sign in</button>
     <div class="loginerr" id="lg_err"></div>
   </div>
 </div>
+
+<div class="toasts" id="toasts"></div>
 
 <script type="module">
 "use strict";
 
 const APP_VERSION = "1.0.0";
 
-/* ============================================================
-   Supabase — the shared server. Loaded from CDN; if it can't be
-   reached (offline), the app falls back to the local cache.
-   ============================================================ */
 const SUPABASE_URL  = "https://cexzmwucocmqozuqhbeb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNleHptd3Vjb2NtcW96dXFoYmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0OTg0NDgsImV4cCI6MjA5ODA3NDQ0OH0.xZ_Ms8ciJZuGA1xiZjFOWPt_VtkCdT1xHFxZ3bBQ0uM";
 
-let supa = null;
-try {
-  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-  supa = createClient(SUPABASE_URL, SUPABASE_ANON, { auth:{ persistSession:true, autoRefreshToken:true } });
-} catch(e){ console.warn("Supabase unavailable — running on local cache.", e); }
+let supa=null;
+try{ const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+     supa = createClient(SUPABASE_URL, SUPABASE_ANON, { auth:{ persistSession:true, autoRefreshToken:true } }); }
+catch(e){ console.warn("Offline — Supabase library unavailable.", e); }
 
-const COLS = ["id","date","time","route","drivers","pax","ship","firma","passengers","reference","price","notes"];
-const rowFrom = b => { const r={}; COLS.forEach(k=>r[k]=b[k]); r.updated_at=new Date().toISOString(); return r; };
-
-let online = false;                 // true once a session + a good fetch exist
-const setPill = (state)=>{          // state: live | off | sync
-  const p=document.querySelector("#syncPill"); if(!p) return;
-  p.className="syncpill "+(state==="live"?"live":state==="off"?"off":"");
-  p.textContent = state==="live"?"● Live":state==="off"?"⚠ Offline":"··· syncing";
-};
-
-async function cloudFetchAll(){
-  const { data, error } = await supa.from("bookings").select("*");
-  if(error) throw error;
-  return data.map(r=>({ ...r, drivers:r.drivers||[] }));
-}
-async function cloudUpsert(b){ const { error } = await supa.from("bookings").upsert(rowFrom(b)); if(error) throw error; }
-async function cloudDelete(id){ const { error } = await supa.from("bookings").delete().eq("id",id); if(error) throw error; }
-async function cloudWipe(){ const { error } = await supa.from("bookings").delete().neq("id","__none__"); if(error) throw error; }
-
-/* ============================================================
-   Storage layer — localStorage when available (standalone file),
-   in-memory fallback so the Claude preview never crashes.
-   ============================================================ */
-const Store = (() => {
-  let mem = {};
-  let hasLS = false;
-  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); hasLS = true; } catch(e){}
-  return {
-    persistent: hasLS,
-    get(k){ try { return hasLS ? localStorage.getItem(k) : (mem[k] ?? null); } catch(e){ return mem[k] ?? null; } },
-    set(k,v){ try { hasLS ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } },
-    del(k){ try { hasLS ? localStorage.removeItem(k) : (delete mem[k]); } catch(e){ delete mem[k]; } }
-  };
-})();
-const KEY = "hfdispatch.v1";
-
-/* ============================================================
-   Date helpers
-   ============================================================ */
-const NB_DAYS = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
-const NB_MONTHS = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
-const pad = n => String(n).padStart(2,"0");
-const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const parseIso = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
-const addDays = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
-const startOfWeek = d => addDays(d, -((d.getDay()+6)%7));        // Monday
-const longDate = d => `${NB_DAYS[d.getDay()]} ${d.getDate()}. ${NB_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-const minutesOf = t => { const [h,m]=t.split(":").map(Number); return h*60+m; };
-const todayIso = () => iso(new Date());
-
-/* ============================================================
-   Visual identity per driver / company (honours the colour-coded sheet)
-   ============================================================ */
-const DRIVER_COLORS = ["#3ea0ff","#9b8cff","#ff8fb4","#7ad0a8","#ffc266","#5fd3d0","#f08c6b","#b6d36b","#d59bff","#69b7ff","#ffa6a6","#8fd6a0"];
-function colorFor(name){
-  if(!name) return "#3ea0ff";
-  let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0;
-  return DRIVER_COLORS[h % DRIVER_COLORS.length];
-}
-const FIRMA_COLORS = {
-  "COOR":"#ffe14d",
-  "Iberica Knutsen":"#7ad0a8",
-  "Widerøe":"#7fb2ff",
-  "Hammerfest kommune":"#c0a6ff",
-  "Arctic Aurora":"#ffab73",
-  "":"#a9bacb"
-};
-const firmaColor = f => FIRMA_COLORS[f] ?? "#a9bacb";
-
-/* ============================================================
-   Seed data — transcribed from the uploaded schedule (7–8 June 2026)
-   ============================================================ */
-function seed(){
-  const D1="2026-06-07", D2="2026-06-08";
-  let id=0; const B=(o)=>({id:"b"+(++id), pax:null, ship:"", passengers:"", reference:"", notes:"", ...o});
-  return [
-    // ---- søndag 7. juni ----
-    B({date:D1,time:"06:30",route:"Skytterhuset – Nybyen (minibuss)",drivers:["Hammerfest taxi"],firma:"COOR",price:4200}),
-    B({date:D1,time:"06:15",route:"Skytterhuset – Nybyen (buss 1)",drivers:["Dave"],firma:"COOR",price:4200}),
-    B({date:D1,time:"06:30",route:"Skytterhuset – Nybyen (buss 2)",drivers:["KAY M"],firma:"COOR",price:4200}),
-    B({date:D1,time:"10:00",route:"Flybussen",drivers:["KAY M"],firma:"",price:6540}),
-    B({date:D1,time:"11:05",route:"HFT → Tuva (via politi)",drivers:["Kent Johannesen"],pax:1,ship:"Tuva",
-       passengers:"ELLMARK, Cyrille",firma:"Iberica Knutsen",reference:"PO 56637",price:1520}),
-    B({date:D1,time:"12:00",route:"1 pax med Tuva, 3 i retur",drivers:["Kent Johannesen","Grzegors"],pax:1,ship:"Tuva / ASH",
-       passengers:"SJOESTRAND Mats (til HFT); PERMAN Igor, AGUDELO GARCIA Maria Fer (til ASH)",firma:"Iberica Knutsen",reference:"PO 56637",price:16960}),
-    B({date:D1,time:"13:00",route:"3 pax Tuva → ASH (via politi, 1 pax videre til HFT)",drivers:["Kent Johannesen","Grzegors"],pax:3,ship:"Tuva / ASH",
-       passengers:"PERMAN Igor, AGUDELO GARCIA Maria Fer",firma:"Iberica Knutsen",reference:"PO 56637",price:1520}),
-    B({date:D1,time:"13:15",route:"Hammerfest → Honningsvåg",drivers:["Dave"],pax:16,firma:"Widerøe",
-       reference:"rekvisisjon 378168",notes:"+ 16 baguetter og 16 vann",price:21434}),
-    B({date:D1,time:"21:30",route:"ASH → HFT",drivers:["Ihor"],pax:2,ship:"ASH",firma:"Iberica Knutsen",
-       reference:"PO 56637",notes:"+ 2 dagens middag",price:2218}),
-    B({date:D1,time:"18:45",route:"Nybyen – Skytterhuset (buss 1)",drivers:["Magdalena"],firma:"COOR",price:4200}),
-    B({date:D1,time:"18:45",route:"Nybyen – Skytterhuset (buss 2)",drivers:["Grzegorz"],firma:"COOR",price:4200}),
-    // ---- mandag 8. juni ----
-    B({date:D2,time:"06:30",route:"Skytterhuset – Nybyen (minibuss)",drivers:["Evald"],firma:"COOR",price:4200}),
-    B({date:D2,time:"06:15",route:"Skytterhuset – Nybyen (buss 1)",drivers:["Grzegorz"],firma:"COOR",price:4200}),
-    B({date:D2,time:"06:30",route:"Skytterhuset – Nybyen (buss 2)",drivers:["Magdalena"],firma:"COOR",price:4200}),
-    B({date:D2,time:"08:00",route:"Flybussen",drivers:["KAY M"],firma:"",price:3090}),
-    B({date:D2,time:"08:40",route:"Reindalen skole → Kirkegårdsbukta i Forsøl",drivers:["Robert"],pax:32,
-       passengers:"28 elever + 4 voksne",firma:"Hammerfest kommune",reference:"referanse 2520",price:3900}),
-    B({date:D2,time:"09:00",route:"Iberica Knutsen → Tuva",drivers:["Evald","Grzegors"],pax:2,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:15020}),
-    B({date:D2,time:"09:20",route:"Tuva → immigration",drivers:["Grzegorz"],pax:2,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:890}),
-    B({date:D2,time:"10:45",route:"Sentrum → Tuva",drivers:["Grzegorz"],pax:2,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:890}),
-    B({date:D2,time:"11:00",route:"Tuva → Iberica Knutsen",drivers:["Evald","Grzegors"],pax:2,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:15020}),
-    B({date:D2,time:"12:00",route:"Kirkegårdsbukta → Reindalen skole",drivers:["Robert"],pax:32,
-       passengers:"28 elever + 4 voksne",firma:"Hammerfest kommune",reference:"referanse 2520",price:3900}),
-    B({date:D2,time:"18:45",route:"Iberica Knutsen → Hammerfest (Tuva)",drivers:["Robert","Evald"],pax:1,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:16960}),
-    B({date:D2,time:"19:30",route:"Tuva → Flyplass",drivers:["Robert"],pax:1,ship:"Tuva",firma:"Iberica Knutsen",reference:"PO 56637",price:1500}),
-    B({date:D2,time:"18:45",route:"Nybyen – Skytterhuset (buss 1)",drivers:["Magdalena"],firma:"COOR",price:4200}),
-    B({date:D2,time:"18:45",route:"Nybyen – Skytterhuset (buss 2)",drivers:["Grzegorz"],firma:"COOR",price:4200}),
-    B({date:D2,time:"22:00",route:"ASH → airport",drivers:["Ihor"],pax:5,ship:"ASH",firma:"Arctic Aurora",reference:"68337 Arctic Aurora",price:1720}),
-  ];
-}
-
-/* ============================================================
-   App state
-   ============================================================ */
-let DB;            // {bookings:[], prefs:{}, records:{drivers:[], ships:[], companies:[]}}
-const defaultPrefs = { enabled:true, leadMinutes:60, nightBefore:true, nightBeforeHour:20, earlyThreshold:"09:00", theme:"dark",
-  display:{ driver:true, company:true, ship:true, pax:true, reference:true, price:true } };
-const emptyRecords = () => ({ drivers:[], ships:[], companies:[] });
-function uniqueSorted(list){ return [...new Set((list||[]).map(x=>String(x||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
-function recordsFromBookings(bookings){
-  return {
-    drivers: uniqueSorted((bookings||[]).flatMap(b=>b.drivers||[])),
-    ships: uniqueSorted((bookings||[]).map(b=>b.ship)),
-    companies: uniqueSorted(["COOR","Iberica Knutsen","Widerøe","Hammerfest kommune","Arctic Aurora", ...(bookings||[]).map(b=>b.firma)])
-  };
-}
-function ensureRecords(){
-  DB.records = {...emptyRecords(), ...(DB.records||{})};
-  const fromBookings=recordsFromBookings(DB.bookings||[]);
-  DB.records.drivers = uniqueSorted([...DB.records.drivers, ...fromBookings.drivers]);
-  DB.records.ships = uniqueSorted([...DB.records.ships, ...fromBookings.ships]);
-  DB.records.companies = uniqueSorted([...DB.records.companies, ...fromBookings.companies]);
-}
-function rememberRecord(kind, value){
-  value=String(value||"").trim(); if(!value) return;
-  ensureRecords();
-  const key = kind==="firma" ? "companies" : kind;
-  if(!DB.records[key].some(x=>x.toLowerCase()===value.toLowerCase())) DB.records[key]=uniqueSorted([...DB.records[key], value]);
-}
-
-function load(){
-  const raw = Store.get(KEY);
-  if(raw){ try { DB = JSON.parse(raw); } catch(e){ DB=null; } }
-  if(!DB || !DB.bookings){ DB = { bookings: [], prefs:{...defaultPrefs}, records:emptyRecords() }; }
-  DB.prefs = {...defaultPrefs, ...(DB.prefs||{})};
-  DB.prefs.display = {...defaultPrefs.display, ...(DB.prefs.display||{})};
-  ensureRecords();
-}
-function save(){ ensureRecords(); Store.set(KEY, JSON.stringify(DB)); }
-
-let role = "central";
-let currentDay = parseIso("2026-06-08");   // start on a seeded day so it isn't empty
-let currentWeek = startOfWeek(currentDay);
-let currentDriver = null;
-
-/* ============================================================
-   Derived helpers
-   ============================================================ */
-const allDrivers = () => uniqueSorted([...(DB.records?.drivers||[]), ...DB.bookings.flatMap(b=>b.drivers||[])]);
-const allShips = () => uniqueSorted([...(DB.records?.ships||[]), ...DB.bookings.map(b=>b.ship)]);
-const allCompanies = () => uniqueSorted([...(DB.records?.companies||[]), ...DB.bookings.map(b=>b.firma)]);
-const forDay = d => DB.bookings.filter(b=>b.date===iso(d)).sort((a,b)=>minutesOf(a.time)-minutesOf(b.time));
-const forDriverDay = (drv,d) => forDay(d).filter(b=>b.drivers.includes(drv));
-const kr = n => (n==null?"–":new Intl.NumberFormat("nb-NO").format(n)+" kr");
-
-/* ============================================================
-   Rendering
-   ============================================================ */
-const $ = s => document.querySelector(s);
-const el = (t,c,h)=>{ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
-
-function renderNav(){
-  const n = $("#navbar"); n.innerHTML="";
-  if(role==="central"){
-    const prev=el("button","arrow","‹"), next=el("button","arrow","›");
-    prev.onclick=()=>{ currentDay=addDays(currentDay,-1); render(); };
-    next.onclick=()=>{ currentDay=addDays(currentDay,1); render(); };
-    const title=el("div","navtitle",`${longDate(currentDay)}<small>Daily board</small>`);
-    const dateInp=el("input"); dateInp.type="date"; dateInp.value=iso(currentDay);
-    dateInp.onchange=e=>{ currentDay=parseIso(e.target.value); render(); };
-    const today=el("button","ghost","Today"); today.onclick=()=>{ currentDay=new Date(); render(); };
-    n.append(prev,next,title,dateInp,today,buildFilter());
-  } else {
-    const prev=el("button","arrow","‹"), next=el("button","arrow","›");
-    prev.onclick=()=>{ currentWeek=addDays(currentWeek,-7); render(); };
-    next.onclick=()=>{ currentWeek=addDays(currentWeek,7); render(); };
-    const end=addDays(currentWeek,6);
-    const label=`${currentWeek.getDate()}. ${NB_MONTHS[currentWeek.getMonth()].slice(0,3)} – ${end.getDate()}. ${NB_MONTHS[end.getMonth()].slice(0,3)} ${end.getFullYear()}`;
-    const title=el("div","navtitle",`${label}<small>${currentDriver||"—"} · weekly schedule</small>`);
-    const today=el("button","ghost","This week"); today.onclick=()=>{ currentWeek=startOfWeek(new Date()); render(); };
-    n.append(prev,next,title,today);
-  }
-}
-
-function buildFilter(){
-  const d=DB.prefs.display;
-  const items=[["driver","Driver"],["company","Company"],["ship","Ship"],["pax","Pax"],["reference","Reference"],["price","Price"]];
-  const wrap=el("div","filter");
-  const btn=el("button","ghost","");
-  const setLabel=()=>{ const c=Object.values(d).filter(Boolean).length; btn.innerHTML=`☰ Filter <span style="color:var(--ink-faint)">· ${c}/${items.length}</span>`; };
-  setLabel();
-  const panel=el("div","filterpanel"); panel.append(el("div","ph","Show on board"));
-  items.forEach(([k,label])=>{
-    const row=el("label","filteritem",`<input type="checkbox" ${d[k]?"checked":""}><span>${label}</span>`);
-    row.querySelector("input").onchange=e=>{ d[k]=e.target.checked; save(); setLabel(); renderCentral(); };
-    panel.append(row);
-  });
-  panel.onclick=e=>e.stopPropagation();
-  btn.onclick=e=>{ e.stopPropagation(); document.querySelectorAll(".filter.open").forEach(f=>{if(f!==wrap)f.classList.remove("open")}); wrap.classList.toggle("open"); };
-  wrap.append(btn,panel);
-  return wrap;
-}
-
-function driveTags(b){
-  const d=DB.prefs.display; let h="";
-  if(d.ship && b.ship) h+=`<span class="tag ship">⚓ ${b.ship}</span>`;
-  if(d.company && b.firma) h+=`<span class="chip" style="background:${firmaColor(b.firma)}"><i></i>${b.firma}</span>`;
-  return h;
-}
-
-function renderCentral(){
-  const m=$("#main"); m.innerHTML="";
-  const list=forDay(currentDay);
-  const total=list.reduce((s,b)=>s+(b.price||0),0);
-
-  const head=el("div","dayhead");
-  head.append(
-    el("h3",null,"Drivings"),
-    el("div","count",`${list.length} ${list.length===1?"driving":"drivings"}`),
-    el("div","daytotal",`<b>${kr(total)}</b><span>Day total</span>`)
-  );
-  m.append(head);
-
-  if(!list.length){
-    m.append(el("div","empty","<b>No drivings booked</b>Use “+ New driving” to add the first one for this day."));
-    return;
-  }
-
-  const board=el("div","board");
-  // live now-line, only meaningful when viewing today
-  if(iso(currentDay)===todayIso()){
-    const now=new Date(), mins=now.getHours()*60+now.getMinutes();
-    const span=minutesOf(list[list.length-1].time)-minutesOf(list[0].time)||1;
-    // simple proportional placement against the rendered rows is unreliable; place after the matching row instead
-  }
-
-  list.forEach(b=>{
-    const d=DB.prefs.display;
-    const row=el("div","drive"); row.style.setProperty("--c",colorFor(b.drivers[0]));
-    const drivers=d.driver ? b.drivers.map(x=>`<span class="chip" style="background:${colorFor(x)}"><i></i>${x}</span>`).join("") : "";
-    row.innerHTML=`
-      <div class="time">${b.time}</div>
-      <div class="body">
-        <div class="route">${b.route} ${driveTags(b)}</div>
-        <div class="meta">
-          ${drivers}
-          ${d.pax && b.pax!=null?`<span class="pax">👤 ${b.pax} pax</span>`:""}
-          ${d.reference && b.reference?`<span style="color:var(--ink-faint)">${b.reference}</span>`:""}
-          ${d.price?`<span class="price">${kr(b.price)}</span>`:""}
-        </div>
-      </div>`;
-    row.onclick=()=>openDetail(b);
-    board.append(row);
-  });
-  m.append(board);
-}
-
-function renderDriver(){
-  const m=$("#main"); m.innerHTML="";
-  if(!currentDriver){ m.append(el("div","empty","<b>Pick a driver</b>Choose who is signed in from the menu up top.")); return; }
-
-  const week=el("div","week");
-  let weekCount=0;
-  for(let i=0;i<7;i++){
-    const d=addDays(currentWeek,i);
-    const jobs=forDriverDay(currentDriver,d);
-    weekCount+=jobs.length;
-    const col=el("div","wcol"+(iso(d)===todayIso()?" today":""));
-    const hasEarly=jobs.some(j=>minutesOf(j.time)<minutesOf(DB.prefs.earlyThreshold));
-    col.append(el("h4",null,
-      `<span>${NB_DAYS[d.getDay()].slice(0,3)} ${d.getDate()}.</span><b>${jobs.length||""}</b>${hasEarly?'<span class="early">EARLY</span>':""}`));
-    const body=el("div","wbody");
-    if(!jobs.length){ body.append(el("div","wnone","—")); }
-    jobs.forEach(b=>{
-      const j=el("div","wjob"); j.style.setProperty("--c",colorFor(currentDriver));
-      j.innerHTML=`<div class="wt"><span>${b.time}</span>${b.pax!=null?`<span class="px">${b.pax} pax</span>`:""}</div>
-                   <div class="wr">${b.route}${b.ship?` · ⚓ ${b.ship}`:""}</div>`;
-      j.onclick=()=>openDetail(b,true);
-      body.append(j);
-    });
-    col.append(body);
-    week.append(col);
-  }
-  m.append(week);
-
-  if(!weekCount){
-    m.querySelector(".week").after(el("div","empty",`<b>No drivings this week</b>${currentDriver} has nothing booked between these dates.`));
-  }
-  m.append(renderSettings());
-}
-
-function renderSettings(){
-  const p=DB.prefs;
-  const s=el("div","settings");
-  s.innerHTML=`<h3>Reminders</h3>
-    <div class="muted">These rules drive the notifications below. In this prototype they fire while the app is open.</div>`;
-  const rows=[
-    {key:"enabled",type:"toggle",t:"Reminders on",s:"Master switch for all notifications."},
-    {key:"leadMinutes",type:"num",t:"Lead time before each driving",s:"Minutes before departure.",suffix:"min"},
-    {key:"nightBefore",type:"toggle",t:"Night-before alert for early drivings",s:`Sent the evening before, when a driving starts before ${p.earlyThreshold}.`},
-    {key:"nightBeforeHour",type:"num",t:"Night-before alert time",s:"Hour of the evening (24h).",suffix:":00"},
-  ];
-  rows.forEach(r=>{
-    const row=el("div","setrow");
-    row.append(el("div","lab",`<b>${r.t}</b><small>${r.s}</small>`));
-    if(r.type==="toggle"){
-      const sw=el("label","switch"); sw.innerHTML=`<input type="checkbox" ${p[r.key]?"checked":""}><span class="slider"></span>`;
-      sw.querySelector("input").onchange=e=>{ p[r.key]=e.target.checked; save(); render(); };
-      row.append(sw);
-    } else {
-      const wrap=el("div",null,`<input type="number" value="${p[r.key]}"> <small style="color:var(--ink-faint)">${r.suffix||""}</small>`);
-      wrap.querySelector("input").onchange=e=>{ p[r.key]=Math.max(0,parseInt(e.target.value||0,10)); save(); };
-      row.append(wrap);
-    }
-    s.append(row);
-  });
-  const btns=el("div","rowbtns");
-  const test=el("button","ghost","Send test notification"); test.onclick=fireTest;
-  const sim=el("button","primary","Simulate today’s reminders"); sim.onclick=()=>simulateDay();
-  btns.append(test,sim); s.append(btns);
-
-  const note=el("div","muted",
-    Store.persistent
-      ? `Data is saved on this device. Notifications require permission — your browser will ask.`
-      : `Heads up: this preview can’t save to disk, so data resets on reload. Download the file and open it locally to keep data.`);
-  note.style.marginTop="12px";
-  s.append(note);
-  return s;
-}
-
-/* ============================================================
-   Detail + form sheet
-   ============================================================ */
-const scrim=$("#scrim"), sheet=$("#sheet");
-function closeSheet(){ scrim.classList.remove("show"); sheet.innerHTML=""; }
-scrim.onclick=e=>{ if(e.target===scrim) closeSheet(); };
-
-function openDetail(b, driverView=false){
-  scrim.classList.add("show");
-  const drivers=b.drivers.map(d=>`<span class="chip" style="background:${colorFor(d)}"><i></i>${d}</span>`).join(" ");
-  let rows=`
-    <div class="kv">
-      <dt>Time</dt><dd>${b.time}</dd>
-      <dt>Route</dt><dd>${b.route}</dd>
-      ${b.ship?`<dt>Ship</dt><dd>${b.ship}</dd>`:""}
-      <dt>Pax</dt><dd>${b.pax!=null?b.pax:"—"}</dd>
-      <dt>Driver(s)</dt><dd>${drivers}</dd>`;
-  if(!driverView){
-    rows+=`
-      <dt>Company</dt><dd>${b.firma||"—"}</dd>
-      <dt>Reference</dt><dd>${b.reference||"—"}</dd>
-      <dt>Price</dt><dd>${kr(b.price)}</dd>`;
-  }
-  if(b.notes) rows+=`<dt>Notes</dt><dd>${b.notes}</dd>`;
-  rows+=`</div>`;
-  const names = (!driverView && b.passengers) ? `<div class="pax-names"><b>Passengers</b><br>${b.passengers}</div>` : "";
-
-  sheet.innerHTML=`
-    <button class="close ghost" onclick="closeSheet()">✕</button>
-    <h3>${b.route}</h3>
-    <div class="sub">${longDate(parseIso(b.date))}</div>
-    ${rows}${names}`;
-  if(!driverView){
-    const btns=el("div","rowbtns");
-    const edit=el("button","primary","Edit"); edit.onclick=()=>openForm(b);
-    const del=el("button","ghost","Delete"); del.style.color="var(--danger)";
-    del.onclick=()=>{ if(confirm("Delete this driving?")){
-      DB.bookings=DB.bookings.filter(x=>x.id!==b.id); save(); closeSheet(); render();
-      if(online) cloudDelete(b.id).catch(()=>pushToast("Not synced","Couldn’t reach the server — delete saved on this device only."));
-    } };
-    btns.append(edit,del); sheet.append(btns);
-  }
-}
-
-function openForm(b){
-  const isNew=!b;
-  b = b || { id:"b"+Date.now(), date:iso(currentDay), time:"08:00", route:"", drivers:[], pax:null, ship:"", firma:"", passengers:"", reference:"", price:null, notes:"" };
-  scrim.classList.add("show");
-  const firmaOpts=["","COOR","Iberica Knutsen","Widerøe","Hammerfest kommune","Arctic Aurora"]
-    .map(f=>`<option ${f===b.firma?"selected":""}>${f||"—"}</option>`).join("");
-  sheet.innerHTML=`
-    <button class="close ghost" onclick="closeSheet()">✕</button>
-    <h3>${isNew?"New driving":"Edit driving"}</h3>
-    <div class="sub">All fields except route are optional.</div>
-    <div class="two">
-      <div class="field"><label>Date</label><input id="f_date" type="date" value="${b.date}"></div>
-      <div class="field"><label>Departure</label><input id="f_time" type="time" value="${b.time}"></div>
-    </div>
-    <div class="field"><label>Route / stops</label><input id="f_route" value="${esc(b.route)}" placeholder="e.g. HFT → Tuva (via politi)"></div>
-    <section class="driver-section" id="f_drvsection">
-      <button type="button" class="driver-head" id="f_drvtoggle" aria-expanded="false">
-        <div class="driver-icon">☷</div>
-        <div class="driver-title"><b>Driver(s)</b><small>Click to select all drivers who will be part of this run.</small></div>
-        <div class="driver-summary">
-          <div class="driver-count" id="f_drvcount">0 selected</div>
-          <div class="driver-arrow">⌄</div>
-        </div>
-      </button>
-      <div class="driver-body" id="f_drvbody">
-        <div class="drvsearch"><input id="f_drvsearch" placeholder="Search drivers…" autocomplete="off"></div>
-        <div class="drvbox" id="f_drvbox"></div>
-        <div class="drvadd">
-          <input id="f_newdriver" placeholder="Add a new driver…" autocomplete="off">
-          <button type="button" id="f_adddrv">Add</button>
-        </div>
-        <div class="driver-hint">Tick everyone on the run; two names for a shared trip.</div>
-      </div>
-    </section>
-    <div class="field"><label>Pax</label><input id="f_pax" type="number" min="0" value="${b.pax??""}" placeholder="Number of passengers"></div>
-    <section class="driver-section choice-section" id="f_shipsection">
-      <button type="button" class="driver-head" id="f_shiptoggle" aria-expanded="false">
-        <div class="driver-icon">⚓</div>
-        <div class="driver-title"><b>Ship</b><small>Click to choose or add the vessel for this run.</small></div>
-        <div class="driver-summary">
-          <div class="driver-count" id="f_shipcount">No ship</div>
-          <div class="driver-arrow">⌄</div>
-        </div>
-      </button>
-      <div class="driver-body" id="f_shipbody">
-        <div class="drvsearch"><input id="f_shipsearch" placeholder="Search ships…" autocomplete="off"></div>
-        <div class="choice-options" id="f_shipbox"></div>
-        <div class="drvadd">
-          <input id="f_newship" placeholder="Add a new ship…" autocomplete="off">
-          <button type="button" id="f_addship">Add</button>
-        </div>
-      </div>
-    </section>
-    <section class="driver-section choice-section" id="f_firmasection">
-      <button type="button" class="driver-head" id="f_firmatoggle" aria-expanded="false">
-        <div class="driver-icon">◆</div>
-        <div class="driver-title"><b>Company</b><small>Click to choose or add the customer/company.</small></div>
-        <div class="driver-summary">
-          <div class="driver-count" id="f_firmacount">No company</div>
-          <div class="driver-arrow">⌄</div>
-        </div>
-      </button>
-      <div class="driver-body" id="f_firmabody">
-        <div class="drvsearch"><input id="f_firmasearch" placeholder="Search companies…" autocomplete="off"></div>
-        <div class="choice-options" id="f_firmabox"></div>
-        <div class="drvadd">
-          <input id="f_newfirma" placeholder="Add a new company…" autocomplete="off">
-          <button type="button" id="f_addfirma">Add</button>
-        </div>
-      </div>
-    </section>
-    <div class="field"><label>Passenger names</label><textarea id="f_pax_names" placeholder="ELLMARK, Cyrille; …">${esc(b.passengers)}</textarea></div>
-    <div class="two">
-      <div class="field"><label>Reference</label><input id="f_ref" value="${esc(b.reference)}" placeholder="PO 56637"></div>
-      <div class="field"><label>Price (kr)</label><input id="f_price" type="number" min="0" value="${b.price??""}"></div>
-    </div>
-    <div class="field"><label>Notes</label><input id="f_notes" value="${esc(b.notes)}" placeholder="+ 2 dagens middag"></div>
-    <div class="rowbtns">
-      <button class="primary" id="f_save">${isNew?"Add driving":"Save changes"}</button>
-      <button class="ghost" onclick="closeSheet()">Cancel</button>
-    </div>`;
-
-  // driver picker
-  const pool=[...new Set([...allDrivers(), ...b.drivers])].sort((a,b)=>a.localeCompare(b));
-  const selected=new Set(b.drivers);
-  let driverFilter="";
-  const updateDriverCount=()=>{
-    const n=selected.size;
-    const badge=$("#f_drvcount");
-    if(badge) badge.textContent = `${n} selected`;
-  };
-  const driverSection=$("#f_drvsection");
-  const driverToggle=$("#f_drvtoggle");
-  const setDriverOpen=(open)=>{
-    driverSection.classList.toggle("open", open);
-    driverToggle.setAttribute("aria-expanded", open ? "true" : "false");
-    if(open) setTimeout(()=>$("#f_drvsearch")?.focus(), 160);
-  };
-  driverToggle.onclick=()=>setDriverOpen(!driverSection.classList.contains("open"));
-  function renderDrvBox(){
-    const box=$("#f_drvbox"); box.innerHTML="";
-    const q=driverFilter.trim().toLowerCase();
-    const visible=pool.filter(name=>!q || name.toLowerCase().includes(q));
-    if(!visible.length){
-      box.append(el("div","drvempty","No drivers found. Add the name below."));
-    }
-    visible.forEach(name=>{
-      const row=el("label","drvrow",
-        `<input type="checkbox" class="drvchk" value="${esc(name)}" ${selected.has(name)?"checked":""}>
-         <span class="dot" style="background:${colorFor(name)}"></span><span class="name">${esc(name)}</span>`);
-      row.querySelector("input").onchange=e=>{
-        e.target.checked?selected.add(name):selected.delete(name);
-        updateDriverCount();
-      };
-      box.append(row);
-    });
-    updateDriverCount();
-  }
-  const addDriver=()=>{
-    const input=$("#f_newdriver");
-    const v=input.value.trim(); if(!v) return;
-    const existing=pool.find(p=>p.toLowerCase()===v.toLowerCase());
-    const name=existing || v;
-    if(!existing){ pool.push(name); pool.sort((a,b)=>a.localeCompare(b)); }
-    selected.add(name); rememberRecord("drivers", name); save();
-    input.value=""; driverFilter="";
-    $("#f_drvsearch").value="";
-    renderDrvBox();
-    input.focus();
-  };
-  $("#f_drvsearch").oninput=e=>{ driverFilter=e.target.value; renderDrvBox(); };
-  $("#f_adddrv").onclick=addDriver;
-  $("#f_newdriver").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); addDriver(); } };
-  renderDrvBox();
-
-  // neat collapsible single-choice pickers for ship and company
-  const shipPool=uniqueSorted([...allShips(), b.ship]);
-  const firmaPool=uniqueSorted([...allCompanies(), b.firma]);
-  let selectedShip=b.ship||"";
-  let selectedFirma=b.firma||"";
-
-  function setupChoicePicker(kind, pool, getValue, setValue, emptyLabel){
-    let filter="";
-    const section=$("#f_"+kind+"section");
-    const toggle=$("#f_"+kind+"toggle");
-    const count=$("#f_"+kind+"count");
-    const box=$("#f_"+kind+"box");
-    const search=$("#f_"+kind+"search");
-    const addInput=$("#f_new"+(kind==="firma"?"firma":"ship"));
-    const addBtn=$("#f_add"+(kind==="firma"?"firma":"ship"));
-    const setOpen=open=>{
-      section.classList.toggle("open", open);
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-      if(open) setTimeout(()=>search?.focus(),160);
-    };
-    const updateCount=()=>{
-      const value=getValue();
-      count.textContent=value || emptyLabel;
-      count.title=value || emptyLabel;
-    };
-    const renderBox=()=>{
-      box.innerHTML="";
-      const q=filter.trim().toLowerCase();
-      const visible=["", ...pool].filter((name,i)=>i===0 || (!q || name.toLowerCase().includes(q)));
-      visible.forEach(name=>{
-        const label=name || "— none —";
-        const row=el("label","choicerow",
-          `<input type="radio" name="${kind}_pick" value="${esc(name)}" ${getValue()===name?"checked":""}>
-           <span class="name">${esc(label)}</span>`);
-        row.querySelector("input").onchange=e=>{
-          setValue(name);
-          updateCount();
-          renderBox();
-          setOpen(false);
-        };
-        box.append(row);
+/* ---- automatic app updates ---- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("./service-worker.js");
+      reg.update();
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!window.__driverReloading) {
+          window.__driverReloading = true;
+          window.location.reload();
+        }
       });
-      updateCount();
-    };
-    const addValue=()=>{
-      const v=addInput.value.trim(); if(!v) return;
-      const existing=pool.find(p=>p.toLowerCase()===v.toLowerCase());
-      const value=existing || v;
-      if(!existing){ pool.push(value); pool.sort((a,b)=>a.localeCompare(b)); }
-      rememberRecord(kind==="firma" ? "companies" : "ships", value); save();
-      setValue(value);
-      addInput.value=""; filter=""; search.value="";
-      renderBox();
-      setOpen(false);
-    };
-    toggle.onclick=()=>setOpen(!section.classList.contains("open"));
-    search.oninput=e=>{ filter=e.target.value; renderBox(); };
-    addBtn.onclick=addValue;
-    addInput.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); addValue(); } };
-    renderBox();
-  }
-
-  setupChoicePicker("ship", shipPool, ()=>selectedShip, v=>selectedShip=v, "No ship");
-  setupChoicePicker("firma", firmaPool, ()=>selectedFirma, v=>selectedFirma=v, "No company");
-
-  $("#f_save").onclick=()=>{
-    const route=$("#f_route").value.trim();
-    if(!route){ $("#f_route").focus(); $("#f_route").style.borderColor="var(--danger)"; return; }
-    const rec={
-      ...b,
-      date:$("#f_date").value, time:$("#f_time").value, route,
-      drivers:[...selected].sort((a,b)=>a.localeCompare(b)),
-      pax: $("#f_pax").value===""?null:parseInt($("#f_pax").value,10),
-      ship:selectedShip.trim(),
-      firma:selectedFirma.trim(),
-      passengers:$("#f_pax_names").value.trim(),
-      reference:$("#f_ref").value.trim(),
-      price:$("#f_price").value===""?null:parseInt($("#f_price").value,10),
-      notes:$("#f_notes").value.trim()
-    };
-    rec.drivers.forEach(d=>rememberRecord("drivers", d));
-    rememberRecord("ships", rec.ship);
-    rememberRecord("companies", rec.firma);
-    const i=DB.bookings.findIndex(x=>x.id===rec.id);
-    if(i>=0) DB.bookings[i]=rec; else DB.bookings.push(rec);
-    save(); closeSheet();
-    if(role==="central") currentDay=parseIso(rec.date);
-    render();
-    if(online) cloudUpsert(rec).catch(()=>pushToast("Not synced","Couldn’t reach the server — saved on this device only."));
-  };
-}
-const esc = s => String(s??"").replace(/"/g,"&quot;").replace(/</g,"&lt;");
-window.closeSheet=closeSheet;
-
-/* ============================================================
-   Notifications
-   ============================================================ */
-const fired = new Set();   // de-dupe keys for this session
-
-function notify(title, body){
-  pushToast(title, body);
-  try{
-    if("Notification" in window && Notification.permission==="granted"){
-      new Notification(title,{body});
-    }
-  }catch(e){}
-}
-function pushToast(title, body){
-  const t=el("div","toast",`<b>${title}</b><span>${body}</span>`);
-  $("#toasts").append(t);
-  setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .4s"; setTimeout(()=>t.remove(),400); }, 6000);
-}
-async function ensurePermission(){
-  if(!("Notification" in window)) return false;
-  if(Notification.permission==="granted") return true;
-  if(Notification.permission!=="denied"){ try{ return (await Notification.requestPermission())==="granted"; }catch(e){} }
-  return false;
-}
-function fireTest(){ ensurePermission().then(()=>notify("Test reminder","Notifications are working in this session.")); }
-
-// Build the list of reminder events a driver should receive for a given booking
-function reminderEvents(b){
-  const dep = parseIso(b.date); const [h,mn]=b.time.split(":").map(Number);
-  dep.setHours(h,mn,0,0);
-  const out=[];
-  if(DB.prefs.leadMinutes>0){
-    out.push({ at:new Date(dep.getTime()-DB.prefs.leadMinutes*60000),
-      key:b.id+"_lead", title:`Driving in ${DB.prefs.leadMinutes} min`,
-      body:`${b.time} · ${b.route}${b.pax!=null?` · ${b.pax} pax`:""}` });
-  }
-  if(DB.prefs.nightBefore && minutesOf(b.time)<minutesOf(DB.prefs.earlyThreshold)){
-    const eve=addDays(dep,-1); eve.setHours(DB.prefs.nightBeforeHour,0,0,0);
-    out.push({ at:eve, key:b.id+"_night", title:`Early start tomorrow — ${b.time}`,
-      body:`${b.route}${b.pax!=null?` · ${b.pax} pax`:""}` });
-  }
-  return out;
-}
-
-// Real-time tick: while open, fire any reminder whose moment just passed (within 60s)
-function tick(){
-  if(role!=="driver" || !currentDriver || !DB.prefs.enabled) return;
-  const now=Date.now();
-  DB.bookings.filter(b=>b.drivers.includes(currentDriver)).forEach(b=>{
-    reminderEvents(b).forEach(ev=>{
-      const dt=now-ev.at.getTime();
-      if(dt>=0 && dt<60000 && !fired.has(ev.key)){ fired.add(ev.key); notify(ev.title,ev.body); }
-    });
+    } catch (e) { console.warn("Service worker registration failed", e); }
   });
 }
-setInterval(tick, 20000);
 
-// Simulate: fire every reminder for the driver's CURRENT-DAY drivings now, so the logic is visible on demand
-async function simulateDay(){
-  if(!currentDriver){ pushToast("Pick a driver","Choose who is signed in first."); return; }
-  await ensurePermission();
-  const day = iso(new Date()); // simulate "today" — but seed data is in June, so simulate the viewed week's first populated day
-  let jobs = DB.bookings.filter(b=>b.drivers.includes(currentDriver) && b.date===day);
-  if(!jobs.length){
-    // fall back to the soonest day this driver has work in the viewed week
-    for(let i=0;i<7;i++){ const d=iso(addDays(currentWeek,i)); const j=DB.bookings.filter(b=>b.drivers.includes(currentDriver)&&b.date===d); if(j.length){ jobs=j; break; } }
-  }
-  if(!jobs.length){ pushToast("Nothing to simulate",`${currentDriver} has no drivings in view.`); return; }
-  let n=0;
-  jobs.sort((a,b)=>minutesOf(a.time)-minutesOf(b.time)).forEach((b,idx)=>{
-    reminderEvents(b).forEach(ev=>{ setTimeout(()=>notify(ev.title,ev.body), (n++)*900); });
-  });
-  if(!n) pushToast("No reminders","With current settings these drivings produce no alerts.");
-}
+/* ---- storage (device-only: prefs + cache) ---- */
+const Store=(()=>{ let mem={},ls=false; try{localStorage.setItem("__t","1");localStorage.removeItem("__t");ls=true;}catch(e){}
+  return { get:k=>{try{return ls?localStorage.getItem(k):(mem[k]??null);}catch(e){return mem[k]??null;}},
+           set:(k,v)=>{try{ls?localStorage.setItem(k,v):(mem[k]=v);}catch(e){mem[k]=v;}} }; })();
+const PKEY="hfdriver.prefs", CKEY="hfdriver.cache";
+const defaults={ enabled:true, leadMinutes:60, nightBefore:true, nightBeforeHour:20, earlyThreshold:"09:00", theme:"dark", driver:null };
+let prefs={...defaults, ...(JSON.parse(Store.get(PKEY)||"{}"))};
+const savePrefs=()=>Store.set(PKEY, JSON.stringify(prefs));
+let bookings=JSON.parse(Store.get(CKEY)||"[]");
+const saveCache=()=>Store.set(CKEY, JSON.stringify(bookings));
 
+/* ---- date helpers ---- */
+const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], DNL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseIso=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const startOfWeek=d=>addDays(d,-((d.getDay()+6)%7));
+const minutesOf=t=>{const[h,m]=t.split(":").map(Number);return h*60+m;};
+const todayIso=()=>iso(new Date());
 
-/* ============================================================
-   Records manager
-   ============================================================ */
-const recordMeta = {
-  drivers:{ label:"Drivers", single:"driver", icon:"☷", values:allDrivers,
-    usage:name=>DB.bookings.filter(b=>(b.drivers||[]).includes(name)).length,
-    rename:(oldName,newName)=>DB.bookings.forEach(b=>{ b.drivers=uniqueSorted((b.drivers||[]).map(d=>d===oldName?newName:d)); }),
-    remove:name=>DB.bookings.forEach(b=>{ b.drivers=(b.drivers||[]).filter(d=>d!==name); }) },
-  ships:{ label:"Ships", single:"ship", icon:"⚓", values:allShips,
-    usage:name=>DB.bookings.filter(b=>b.ship===name).length,
-    rename:(oldName,newName)=>DB.bookings.forEach(b=>{ if(b.ship===oldName) b.ship=newName; }),
-    remove:name=>DB.bookings.forEach(b=>{ if(b.ship===name) b.ship=""; }) },
-  companies:{ label:"Companies", single:"company", icon:"◆", values:allCompanies,
-    usage:name=>DB.bookings.filter(b=>b.firma===name).length,
-    rename:(oldName,newName)=>DB.bookings.forEach(b=>{ if(b.firma===oldName) b.firma=newName; }),
-    remove:name=>DB.bookings.forEach(b=>{ if(b.firma===name) b.firma=""; }) }
-};
-let recordsTab="drivers";
-function changedBookingsFor(kind, name){
-  if(kind==="drivers") return DB.bookings.filter(b=>(b.drivers||[]).includes(name));
-  if(kind==="ships") return DB.bookings.filter(b=>b.ship===name);
-  return DB.bookings.filter(b=>b.firma===name);
-}
-function syncChangedBookings(rows){
-  if(!online || !rows.length) return;
-  rows.forEach(b=>cloudUpsert(b).catch(()=>{}));
-}
-function openRecords(tab="drivers"){
-  recordsTab=tab;
-  scrim.classList.add("show");
-  const draw=()=>{
-    ensureRecords();
-    const meta=recordMeta[recordsTab];
-    const values=meta.values();
-    sheet.innerHTML=`
-      <button class="close ghost" onclick="closeSheet()">✕</button>
-      <h3>Records</h3>
-      <div class="sub">Add, rename, or remove the reusable lists used in the booking form.</div>
-      <div class="record-tabs">
-        ${Object.entries(recordMeta).map(([key,m])=>`<button type="button" data-tab="${key}" class="${key===recordsTab?'on':''}">${m.label}</button>`).join("")}
-      </div>
-      <div class="record-add">
-        <input id="recordNew" placeholder="Add new ${meta.single}…" autocomplete="off">
-        <button class="primary" id="recordAdd">Add</button>
-      </div>
-      <div class="record-list" id="recordList"></div>`;
-    sheet.querySelectorAll(".record-tabs button").forEach(btn=>btn.onclick=()=>{ recordsTab=btn.dataset.tab; draw(); });
-    const list=sheet.querySelector("#recordList");
-    if(!values.length) list.innerHTML=`<div class="record-empty">No ${meta.label.toLowerCase()} yet.</div>`;
-    values.forEach(name=>{
-      const row=el("div","record-row");
-      const dotColor = recordsTab==="drivers" ? colorFor(name) : (recordsTab==="companies" ? firmaColor(name) : "var(--now)");
-      row.innerHTML=`<span class="dot" style="background:${dotColor}"></span><b>${esc(name)}</b><small>${meta.usage(name)} used</small>`;
-      const edit=el("button",null,"Edit");
-      edit.onclick=()=>{
-        const fresh=prompt(`Rename ${meta.single}:`, name); if(fresh==null) return;
-        const v=fresh.trim(); if(!v || v===name) return;
-        if(meta.values().some(x=>x.toLowerCase()===v.toLowerCase())){ alert("That name already exists."); return; }
-        const affected=changedBookingsFor(recordsTab,name);
-        DB.records[recordsTab]=DB.records[recordsTab].filter(x=>x!==name).concat(v);
-        meta.rename(name,v); save(); syncChangedBookings(affected); render(); draw();
-      };
-      const del=el("button","danger","Delete");
-      del.onclick=()=>{
-        const used=meta.usage(name);
-        const msg=used ? `Delete ${name}? It will also be removed from ${used} booking${used===1?"":"s"}.` : `Delete ${name}?`;
-        if(!confirm(msg)) return;
-        const affected=changedBookingsFor(recordsTab,name);
-        DB.records[recordsTab]=DB.records[recordsTab].filter(x=>x!==name);
-        meta.remove(name); save(); syncChangedBookings(affected); render(); draw();
-      };
-      row.append(edit,del); list.append(row);
-    });
-    const add=()=>{
-      const inp=sheet.querySelector("#recordNew");
-      const v=inp.value.trim(); if(!v) return;
-      if(meta.values().some(x=>x.toLowerCase()===v.toLowerCase())){ inp.value=""; return; }
-      DB.records[recordsTab]=uniqueSorted([...DB.records[recordsTab], v]);
-      ensureRecords(); save(); render(); draw();
-    };
-    sheet.querySelector("#recordAdd").onclick=add;
-    sheet.querySelector("#recordNew").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } };
-    setTimeout(()=>sheet.querySelector("#recordNew")?.focus(), 50);
-  };
-  draw();
-}
+function colorFor(name){ if(!name)return"#3ea0ff"; let h=0; for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;
+  return ["#3ea0ff","#9b8cff","#ff8fb4","#7ad0a8","#ffc266","#5fd3d0","#f08c6b","#b6d36b","#d59bff","#69b7ff","#ffa6a6","#8fd6a0"][h%12]; }
 
-/* ============================================================
-   Role / driver wiring
-   ============================================================ */
-function setRole(r){
-  role=r;
-  document.querySelectorAll("#roleswitch button").forEach(b=>b.classList.toggle("on",b.dataset.role===r));
-  $("#driverpick").style.display = r==="driver" ? "flex" : "none";
-  $("#fab").style.display = r==="central" ? "block" : "none";
-  if(r==="driver"){
-    if(!currentDriver) currentDriver=allDrivers()[0]||null;
-    ensurePermission();
-  }
-  render();
-}
-function buildDriverSelect(){
-  const sel=$("#driverSelect"); sel.innerHTML="";
-  allDrivers().forEach(d=>{ const o=el("option",null,d); o.value=d; sel.append(o); });
-  if(currentDriver) sel.value=currentDriver;
-  sel.onchange=e=>{ currentDriver=e.target.value; fired.clear(); render(); };
-}
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s??"").replace(/</g,"&lt;");
 
-/* ============================================================
-   Main render + boot
-   ============================================================ */
-function render(){
-  buildDriverSelect();
-  renderNav();
-  if(role==="central") renderCentral(); else renderDriver();
-}
+let week=startOfWeek(new Date());
+let online=false;
+const setPill=s=>{const p=$("#pill");p.className="pill "+(s==="live"?"live":s==="off"?"off":"");p.textContent=s==="live"?"● Live":s==="off"?"⚠ Offline":"··· sync";};
 
-document.querySelectorAll("#roleswitch button").forEach(b=>b.onclick=()=>setRole(b.dataset.role));
-$("#newBtn").onclick=()=>openForm(null);
-$("#recordsBtn").onclick=()=>openRecords();
-$("#jumpSample").onclick=()=>{ currentDay=parseIso("2026-06-08"); currentWeek=startOfWeek(parseIso("2026-06-08")); render(); };
-$("#resetData").onclick=async()=>{
-  if(online){
-    if(!confirm("Replace the SHARED schedule for everyone with the sample week?")) return;
-    setPill("sync");
-    try{ await cloudWipe(); for(const b of seed()) await cloudUpsert(b); await pullAll(); pushToast("Reset","Sample week loaded for everyone."); }
-    catch(e){ pushToast("Reset failed", e.message||"Couldn’t reach the server."); }
-  } else {
-    if(!confirm("Reload the local sample schedule on this device?")) return;
-    DB.bookings=seed(); DB.records=recordsFromBookings(DB.bookings); save(); fired.clear(); render();
-  }
-};
-
-function applyTheme(){
-  const light = DB.prefs.theme==="light";
-  document.body.classList.toggle("light", light);
-  const btn=$("#themeBtn"); if(btn) btn.innerHTML = light ? "🌙 Dark" : "☀ Light";
-}
-$("#themeBtn").onclick=()=>{ DB.prefs.theme = DB.prefs.theme==="light" ? "dark" : "light"; save(); applyTheme(); };
-document.addEventListener("click",()=>document.querySelectorAll(".filter.open").forEach(f=>f.classList.remove("open")));
-
-/* ============================================================
-   Auth + cloud boot
-   ============================================================ */
-const loginEl=$("#login");
-function showLogin(msg){ loginEl.classList.add("show"); if(msg) $("#lg_err").textContent=msg; $("#lg_email").focus(); }
-function hideLogin(){ loginEl.classList.remove("show"); }
-
+/* ---- cloud (read-only) ---- */
 async function pullAll(){
   setPill("sync");
-  try{
-    const rows=await cloudFetchAll();
-    if(rows.length===0){ for(const b of seed()) await cloudUpsert(b); DB.bookings=seed(); }
-    else DB.bookings=rows;
-    ensureRecords(); save(); online=true; setPill("live"); render();
-  }catch(e){ online=false; setPill("off"); pushToast("Offline","Showing last synced data on this device."); render(); }
+  try{ const {data,error}=await supa.from("bookings").select("*"); if(error) throw error;
+       bookings=data.map(r=>({...r,drivers:r.drivers||[]})); saveCache(); online=true; setPill("live"); render(); }
+  catch(e){ online=false; setPill("off"); render(); }
 }
-
-function subscribeRealtime(){
+function subscribe(){
   if(!supa) return;
-  supa.channel("bookings-stream")
-    .on("postgres_changes",{event:"*",schema:"public",table:"bookings"},payload=>{
-      const { eventType, new:row, old }=payload;
-      if(eventType==="DELETE"){ DB.bookings=DB.bookings.filter(x=>x.id!==old.id); }
-      else { const r={...row,drivers:row.drivers||[]}; const i=DB.bookings.findIndex(x=>x.id===r.id);
-             if(i>=0) DB.bookings[i]=r; else DB.bookings.push(r); }
-      ensureRecords(); save(); render();
-    }).subscribe();
+  supa.channel("driver-stream").on("postgres_changes",{event:"*",schema:"public",table:"bookings"},p=>{
+    const {eventType,new:row,old}=p;
+    if(eventType==="DELETE") bookings=bookings.filter(x=>x.id!==old.id);
+    else { const r={...row,drivers:row.drivers||[]}; const i=bookings.findIndex(x=>x.id===r.id); if(i>=0)bookings[i]=r; else bookings.push(r); }
+    saveCache(); render();
+  }).subscribe();
 }
 
-async function startSession(){
-  hideLogin();
-  $("#signOut").style.display="inline-block";
-  await pullAll();
-  subscribeRealtime();
+/* ---- render ---- */
+const myRuns=ds=>bookings.filter(b=>b.date===ds && (b.drivers||[]).includes(prefs.driver)).sort((a,b)=>minutesOf(a.time)-minutesOf(b.time));
+
+function render(){
+  $("#meName").textContent=prefs.driver||"—";
+  $("#meDot").style.background=colorFor(prefs.driver);
+  applyTheme();
+  const end=addDays(week,6);
+  $("#wRange").textContent=`${week.getDate()} ${MN[week.getMonth()]} – ${end.getDate()} ${MN[end.getMonth()]}`;
+
+  const wrap=$("#days"); wrap.innerHTML=""; let total=0;
+  if(!prefs.driver){ $("#wCount").textContent="—"; return; }
+  for(let i=0;i<7;i++){
+    const d=addDays(week,i), ds=iso(d), jobs=myRuns(ds); total+=jobs.length;
+    const isToday=ds===todayIso(), early=jobs.some(j=>minutesOf(j.time)<minutesOf(prefs.earlyThreshold));
+    const card=el("div","day"+(isToday?" today":"")+(jobs.length?"":" free"));
+    card.append(el("div","dayhd",
+      `<span class="dn">${DNL[d.getDay()]} ${d.getDate()}.${isToday?'<span class="td">today</span>':''}</span>${early?'<span class="early">early</span>':""}`));
+    if(!jobs.length) card.append(el("div","nojobs","No runs"));
+    jobs.forEach(b=>{
+      const j=el("button","job"); j.style.setProperty("--c",colorFor(prefs.driver));
+      j.innerHTML=`<span class="jt">${b.time}</span><span class="jr">${esc(b.route)}${b.ship?` · ⚓ ${esc(b.ship)}`:""}</span>${b.pax!=null?`<span class="jp">${b.pax}</span>`:""}`;
+      j.onclick=()=>openDetail(b); card.append(j);
+    });
+    wrap.append(card);
+  }
+  $("#wCount").textContent = total ? `${total} run${total>1?"s":""} this week` : "no runs this week";
 }
+
+/* ---- sheets ---- */
+const scrim=$("#scrim"), sheet=$("#sheet");
+function openSheet(html){ sheet.innerHTML=`<div class="grab"></div>`+html; scrim.classList.add("show"); requestAnimationFrame(()=>sheet.classList.add("show")); }
+function closeSheet(){ sheet.classList.remove("show"); scrim.classList.remove("show"); }
+scrim.onclick=closeSheet;
+
+function openDetail(b){
+  const co=(b.drivers||[]).filter(x=>x!==prefs.driver);
+  openSheet(`
+    <h3>${esc(b.route)}</h3>
+    <div class="sub">${DNL[parseIso(b.date).getDay()]} ${parseIso(b.date).getDate()} ${MN[parseIso(b.date).getMonth()]}</div>
+    <div class="kv">
+      <dt>Time</dt><dd>${b.time}</dd>
+      ${b.ship?`<dt>Ship</dt><dd>⚓ ${esc(b.ship)}</dd>`:""}
+      <dt>Pax</dt><dd>${b.pax!=null?b.pax:"—"}</dd>
+      ${co.length?`<dt>With</dt><dd>${co.map(x=>`<span class="chip" style="background:${colorFor(x)}"><i></i>${esc(x)}</span>`).join(" ")}</dd>`:""}
+      ${b.notes?`<dt>Notes</dt><dd>${esc(b.notes)}</dd>`:""}
+    </div>`);
+}
+
+function openSettings(){
+  const p=prefs;
+  openSheet(`
+    <h3>Settings</h3>
+    <div class="sub">Reminders fire while this app is open. Background alerts arrive once it's installed to your home screen.</div>
+    <div class="setrow"><div class="lab"><b>Reminders</b><small>Master switch.</small></div>
+      <label class="switch"><input type="checkbox" id="s_en" ${p.enabled?"checked":""}><span class="slider"></span></label></div>
+    <div class="setrow"><div class="lab"><b>Remind me before each run</b><small>Minutes before departure.</small></div>
+      <input type="number" id="s_lead" min="0" value="${p.leadMinutes}"></div>
+    <div class="setrow"><div class="lab"><b>Night-before for early runs</b><small>For runs before ${p.earlyThreshold}.</small></div>
+      <label class="switch"><input type="checkbox" id="s_nb" ${p.nightBefore?"checked":""}><span class="slider"></span></label></div>
+    <div class="setrow"><div class="lab"><b>Night-before time</b><small>Evening hour (24h).</small></div>
+      <input type="number" id="s_nbh" min="0" max="23" value="${p.nightBeforeHour}"></div>
+    <div class="setrow"><div class="lab"><b>Light theme</b><small>Switch colours.</small></div>
+      <label class="switch"><input type="checkbox" id="s_th" ${p.theme==="light"?"checked":""}><span class="slider"></span></label></div>
+    <div class="btnrow">
+      <button class="btn" id="s_test">Test alert</button>
+      <button class="btn go" id="s_sim">Preview my reminders</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="s_chg">Change driver</button>
+      <button class="btn danger" id="s_out">Sign out</button>
+    </div>`);
+  const bind=(id,key,bool)=>{ const inp=$(id); inp.onchange=e=>{ p[key]= bool ? e.target.checked : Math.max(0,parseInt(e.target.value||0,10)); savePrefs(); if(key==="theme")applyTheme(); }; };
+  bind("#s_en","enabled",true); bind("#s_lead","leadMinutes"); bind("#s_nb","nightBefore",true); bind("#s_nbh","nightBeforeHour");
+  $("#s_th").onchange=e=>{ p.theme=e.target.checked?"light":"dark"; savePrefs(); applyTheme(); };
+  $("#s_test").onclick=()=>ensurePerm().then(()=>notify("Test alert","Reminders are working in this session."));
+  $("#s_sim").onclick=simulate;
+  $("#s_chg").onclick=openDriverPick;
+  $("#s_out").onclick=async()=>{ if(supa) await supa.auth.signOut(); closeSheet(); showLogin("Signed out."); };
+}
+
+function openDriverPick(){
+  const known=[...new Set(bookings.flatMap(b=>b.drivers||[]))].sort((a,b)=>a.localeCompare(b));
+  const rows=known.map(n=>`<button class="pickrow" data-n="${esc(n)}"><span class="dot" style="background:${colorFor(n)}"></span>${esc(n)}</button>`).join("");
+  openSheet(`
+    <h3>Who are you?</h3>
+    <div class="sub">Pick your name, or type it if it isn't listed yet.</div>
+    ${rows||'<div class="sub">No drivers on the schedule yet.</div>'}
+    <div class="addme"><input id="pk_new" placeholder="Type your name…" autocomplete="off"><button class="btn go" id="pk_add" style="flex:none">Use</button></div>`);
+  sheet.querySelectorAll(".pickrow").forEach(r=>r.onclick=()=>setDriver(r.dataset.n));
+  const add=()=>{ const v=$("#pk_new").value.trim(); if(v) setDriver(v); };
+  $("#pk_add").onclick=add; $("#pk_new").onkeydown=e=>{ if(e.key==="Enter") add(); };
+}
+function setDriver(name){ prefs.driver=name; savePrefs(); closeSheet(); render(); ensurePerm(); }
+
+/* ---- theme ---- */
+function applyTheme(){ document.body.classList.toggle("light", prefs.theme==="light"); }
+
+/* ---- notifications ---- */
+function notify(title,body){ pushToast(title,body); try{ if("Notification"in window && Notification.permission==="granted") new Notification(title,{body}); }catch(e){} }
+function pushToast(title,body){ const t=el("div","toast",`<b>${esc(title)}</b><span>${esc(body)}</span>`); $("#toasts").append(t);
+  setTimeout(()=>{t.style.opacity="0";t.style.transition="opacity .4s";setTimeout(()=>t.remove(),400);},6000); }
+async function ensurePerm(){ if(!("Notification"in window))return false; if(Notification.permission==="granted")return true;
+  if(Notification.permission!=="denied"){ try{ return (await Notification.requestPermission())==="granted"; }catch(e){} } return false; }
+
+function reminderEvents(b){
+  const dep=parseIso(b.date); const[h,mn]=b.time.split(":").map(Number); dep.setHours(h,mn,0,0); const out=[];
+  if(prefs.leadMinutes>0) out.push({at:new Date(dep.getTime()-prefs.leadMinutes*60000),key:b.id+"_lead",
+    title:`Run in ${prefs.leadMinutes} min`,body:`${b.time} · ${b.route}${b.pax!=null?` · ${b.pax} pax`:""}`});
+  if(prefs.nightBefore && minutesOf(b.time)<minutesOf(prefs.earlyThreshold)){ const e=addDays(dep,-1); e.setHours(prefs.nightBeforeHour,0,0,0);
+    out.push({at:e,key:b.id+"_night",title:`Early start tomorrow — ${b.time}`,body:`${b.route}${b.pax!=null?` · ${b.pax} pax`:""}`}); }
+  return out;
+}
+const fired=new Set();
+function tick(){ if(!prefs.driver||!prefs.enabled)return; const now=Date.now();
+  bookings.filter(b=>(b.drivers||[]).includes(prefs.driver)).forEach(b=>reminderEvents(b).forEach(ev=>{
+    const dt=now-ev.at.getTime(); if(dt>=0&&dt<60000&&!fired.has(ev.key)){fired.add(ev.key);notify(ev.title,ev.body);} })); }
+setInterval(tick,20000);
+
+async function simulate(){
+  if(!prefs.driver){ pushToast("Pick a driver","Choose your name first."); return; }
+  await ensurePerm();
+  let jobs=myRuns(todayIso());
+  if(!jobs.length) for(let i=0;i<7;i++){ const j=myRuns(iso(addDays(week,i))); if(j.length){jobs=j;break;} }
+  if(!jobs.length){ pushToast("Nothing to preview","No runs in view."); return; }
+  let n=0; jobs.forEach(b=>reminderEvents(b).forEach(ev=>setTimeout(()=>notify(ev.title,ev.body),(n++)*900)));
+  if(!n) pushToast("No reminders","Current settings produce no alerts for these runs.");
+}
+
+/* ---- auth ---- */
+const loginEl=$("#login");
+function showLogin(msg){ loginEl.classList.add("show"); if(msg)$("#lg_err").textContent=msg; }
+function hideLogin(){ loginEl.classList.remove("show"); $("#lg_err").textContent=""; }
+async function startSession(){ hideLogin(); await pullAll(); subscribe();
+  if(!prefs.driver) openDriverPick(); else ensurePerm(); }
+
+$("#lg_btn").onclick=async()=>{ const email=$("#lg_email").value.trim(), password=$("#lg_pass").value;
+  $("#lg_err").textContent=""; $("#lg_btn").textContent="Signing in…";
+  const {error}=await supa.auth.signInWithPassword({email,password}); $("#lg_btn").textContent="Sign in";
+  if(error){ $("#lg_err").textContent=error.message; return; } startSession(); };
+$("#lg_pass").onkeydown=e=>{ if(e.key==="Enter")$("#lg_btn").click(); };
+
+/* ---- nav + boot ---- */
+$("#prevW").onclick=()=>{week=addDays(week,-7);render();};
+$("#nextW").onclick=()=>{week=addDays(week,7);render();};
+$("#thisW").onclick=()=>{week=startOfWeek(new Date());render();};
+$("#gear").onclick=openSettings;
+$("#meBtn").onclick=openDriverPick;
 
 async function boot(){
-  load(); applyTheme(); setRole("central");        // instant paint from cache
-  if(!supa){ online=false; setPill("off");
-    if(!DB.bookings.length){ DB.bookings=seed(); DB.records=recordsFromBookings(DB.bookings); save(); render(); }
-    pushToast("Offline mode","Couldn’t load the sync library — running on local data."); return; }
-
-  const { data:{ session } } = await supa.auth.getSession();
+  applyTheme(); render();
+  if(!supa){ online=false; setPill("off"); pushToast("Offline","Couldn’t load sync — showing cached runs."); return; }
+  const {data:{session}}=await supa.auth.getSession();
   if(session) startSession(); else showLogin();
 }
-
-$("#lg_btn").onclick=async()=>{
-  const email=$("#lg_email").value.trim(), pass=$("#lg_pass").value;
-  $("#lg_err").textContent=""; $("#lg_btn").textContent="Signing in…";
-  const { error }=await supa.auth.signInWithPassword({ email, password:pass });
-  $("#lg_btn").textContent="Sign in";
-  if(error){ $("#lg_err").textContent=error.message; return; }
-  startSession();
-};
-$("#lg_pass").onkeydown=e=>{ if(e.key==="Enter") $("#lg_btn").click(); };
-$("#signOut").onclick=async()=>{ if(supa) await supa.auth.signOut(); online=false; setPill("off");
-  $("#signOut").style.display="none"; showLogin("Signed out."); };
-
-
-/* ============================================================
-   PWA automatic app updates — GitHub Pages + service worker
-   ============================================================ */
-function registerAppUpdates(){
-  if(!("serviceWorker" in navigator)) return;
-
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if(refreshing) return;
-    refreshing = true;
-    // Prevent reload loops on older iOS Safari builds.
-    const key = "dispatch.lastAutoReload";
-    const last = Number(sessionStorage.getItem(key) || 0);
-    const now = Date.now();
-    if(now - last > 2500){
-      sessionStorage.setItem(key, String(now));
-      window.location.reload();
-    }
-  });
-
-  window.addEventListener("load", async () => {
-    try{
-      const reg = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache:"none" });
-
-      // If an update is already downloaded, activate it immediately.
-      if(reg.waiting) reg.waiting.postMessage({ type:"SKIP_WAITING" });
-
-      reg.addEventListener("updatefound", () => {
-        const worker = reg.installing;
-        if(!worker) return;
-        worker.addEventListener("statechange", () => {
-          if(worker.state === "installed" && navigator.serviceWorker.controller){
-            worker.postMessage({ type:"SKIP_WAITING" });
-          }
-        });
-      });
-
-      // Check for a newer app when the driver reopens the app.
-      document.addEventListener("visibilitychange", () => {
-        if(document.visibilityState === "visible") reg.update().catch(()=>{});
-      });
-
-      // Also check occasionally while it is open.
-      setInterval(() => reg.update().catch(()=>{}), 30 * 60 * 1000);
-    }catch(e){ console.warn("App auto-update unavailable", e); }
-  });
-}
-registerAppUpdates();
-
 boot();
 </script>
 </body>
