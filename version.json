@@ -1,7 +1,7 @@
 {
-  "version": "6.0.0-loader",
-  "app": "app-v6.html",
-  "label": "Loader-based driver app v6",
-  "released_at": "2026-06-27T00:05:50.547561Z",
-  "notes": "Stable index.html loader. Real app lives in app-v6.html. Future updates should add app-v7.html/app-v8.html and update this file."
+  "version": "7.0.0-loader-test",
+  "app": "app-v7.html",
+  "label": "Purple loader test v7",
+  "released_at": "2026-06-27T00:06:27.072919Z",
+  "notes": "Future-update test package. Keeps index.html stable; version.json points to app-v7.html."
 }
