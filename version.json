@@ -1,7 +1,0 @@
-{
-  "version": "7.0.0-loader-test",
-  "app": "app-v7.html",
-  "label": "Purple loader test v7",
-  "released_at": "2026-06-27T00:06:27.072919Z",
-  "notes": "Future-update test package. Keeps index.html stable; version.json points to app-v7.html."
-}
