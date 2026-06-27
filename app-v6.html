@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Driver">
+<meta name="theme-color" content="#0f1620">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Driver — My Runs</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+  :root{
+    --bg:#0f1620; --panel:#161f2c; --panel-2:#1c2735;
+    --line:#27374a; --line-soft:#1f2c3b;
+    --ink:#e8eef5; --ink-dim:#9fb0c2; --ink-faint:#6b7e92;
+    --now:#23c7c2; --now-glow:rgba(35,199,194,.18); --accent:#3ea0ff;
+    --warn:#ffb454; --danger:#ff6b6b;
+    --ship-bg:#1c3a3a; --ship-ink:#7fe3df;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  body.light{
+    --bg:#fff7df; --panel:#fff1bd; --panel-2:#ffe69a;
+    --line:#d9b95a; --line-soft:#efd184;
+    --ink:#2f2308; --ink-dim:#6b5418; --ink-faint:#92732a;
+    --now:#c28a00; --now-glow:rgba(194,138,0,.18); --accent:#b07600;
+    --ship-bg:#ffe7a8; --ship-ink:#7a4d00;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+  input,select{font-family:inherit}
+  .wrap{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+  /* header */
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:var(--bg);border-bottom:1px solid var(--line-soft)}
+  .me{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:6px 12px 6px 8px;color:var(--ink)}
+  .me .dot{width:13px;height:13px;border-radius:50%;flex:none}
+  .me b{font-size:14.5px}
+  .me small{color:var(--ink-faint);font-size:10px;display:block;line-height:1;margin-bottom:1px;letter-spacing:.1em;text-transform:uppercase}
+  .spacer{flex:1}
+  .testv{font-size:10.5px;font-weight:900;letter-spacing:.08em;background:var(--now);color:#04201f;border-radius:20px;padding:5px 9px;white-space:nowrap}
+  .pill{font-size:10.5px;font-weight:700;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--ink-faint);white-space:nowrap}
+  .pill.live{color:#04201f;background:var(--now);border-color:var(--now)}
+  .pill.off{color:#3a2a00;background:var(--warn);border-color:var(--warn)}
+  .iconbtn{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:18px;display:grid;place-items:center}
+  .iconbtn:active{background:var(--panel-2)}
+
+  /* week nav */
+  .weeknav{display:flex;align-items:center;gap:8px;padding:12px 16px 6px}
+  .weeknav .arr{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:20px;display:grid;place-items:center}
+  .weeknav .wlabel{flex:1;text-align:center}
+  .weeknav .wlabel b{font-size:15px;display:block}
+  .weeknav .wlabel small{font-size:11px;color:var(--ink-faint)}
+  .thisweek{display:block;margin:2px 16px 4px;text-align:center}
+  .thisweek button{background:transparent;border:0;color:var(--accent);font-size:12.5px;font-weight:600;padding:6px}
+
+  main{flex:1;padding:6px 12px calc(env(safe-area-inset-bottom) + 40px)}
+
+  .day{background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;margin:10px 0;overflow:hidden}
+  .day.today{border-color:var(--now);box-shadow:0 0 0 1px var(--now-glow)}
+  .day.free{background:transparent;border-style:dashed;border-color:var(--line-soft)}
+  .dayhd{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line-soft)}
+  .day.free .dayhd{border-bottom:0}
+  .dayhd .dn{font-size:14px;font-weight:700;text-transform:capitalize}
+  .dayhd .dn .td{color:var(--now);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-left:6px}
+  .dayhd .early{color:var(--warn);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .nojobs{padding:10px 14px;color:var(--ink-faint);font-size:13px}
+  .job{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;
+    border-top:1px solid var(--line-soft);border-left:3px solid var(--c,#3ea0ff);padding:13px 14px;color:var(--ink)}
+  .day .job:first-of-type{border-top:0}
+  .job:active{background:var(--panel-2)}
+  .job .jt{font-family:var(--mono);font-size:16px;font-weight:700;width:48px;flex:none}
+  .job .jr{flex:1;font-size:14px;line-height:1.35}
+  .job .jp{font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;color:#04201f;background:var(--now);border-radius:20px;padding:3px 9px;flex:none}
+
+  /* bottom sheet */
+  .scrim{position:fixed;inset:0;background:rgba(6,10,16,.6);z-index:40;display:none}
+  .scrim.show{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:480px;margin:0 auto;
+    background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);
+    padding:8px 18px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(100%);transition:transform .22s ease;max-height:88vh;overflow:auto}
+  .sheet.show{transform:none}
+  .grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:6px auto 12px}
+  .sheet h3{margin:2px 0 2px;font-size:19px}
+  .sheet .sub{color:var(--ink-faint);font-size:13px;margin-bottom:14px}
+  .kv{display:grid;grid-template-columns:84px 1fr;gap:8px 12px;margin:6px 0}
+  .kv dt{color:var(--ink-faint);font-size:12.5px;padding-top:2px}
+  .kv dd{margin:0;font-size:15px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;padding:3px 10px 3px 7px;border-radius:20px;color:#06121e}
+  .chip i{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.3)}
+
+  .setrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line-soft)}
+  .setrow:first-of-type{border-top:0}
+  .setrow .lab{flex:1}
+  .setrow .lab b{display:block;font-size:14.5px}
+  .setrow .lab small{color:var(--ink-faint);font-size:12px}
+  .switch{position:relative;width:46px;height:27px;flex:none}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--line);border-radius:20px;transition:.15s}
+  .slider::before{content:"";position:absolute;width:21px;height:21px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+  .switch input:checked + .slider{background:var(--now)}
+  .switch input:checked + .slider::before{transform:translateX(19px)}
+  .setrow input[type=number]{width:78px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center;font-size:15px}
+  .btnrow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+  .btn{flex:1;min-width:130px;border-radius:11px;padding:13px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
+  .btn.go{background:var(--now);color:#04201f;border:0}
+  .btn.danger{color:var(--danger)}
+
+  /* driver picker rows */
+  .pickrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:11px;padding:12px 14px;margin:7px 0;color:var(--ink);font-size:15px}
+  .pickrow .dot{width:12px;height:12px;border-radius:50%}
+  .pickrow:active{background:var(--panel)}
+  .addme{display:flex;gap:8px;margin-top:10px}
+  .addme input{flex:1;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px}
+
+  /* login */
+  .login{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:var(--bg);padding:20px}
+  .login.show{display:grid}
+  .loginbox{width:min(380px,100%)}
+  .loginbox h2{margin:0 0 2px;font-size:23px}
+  .loginsub{color:var(--ink-faint);font-size:14px;margin:0 0 20px}
+  .field{margin:12px 0}
+  .field label{display:block;font-size:12px;color:var(--ink-dim);font-weight:600;margin-bottom:6px}
+  .field input{width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px}
+  .login .btn.go{width:100%;margin-top:6px}
+  .loginerr{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
+
+  /* toasts */
+  .toasts{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;width:min(440px,92vw)}
+  .toast{background:var(--panel-2);border:1px solid var(--now);border-left:4px solid var(--now);border-radius:12px;padding:13px 15px;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+  .toast b{display:block;font-size:14px}
+  .toast span{font-size:13px;color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <button class="me" id="meBtn"><span class="dot" id="meDot"></span><span><small>Driver</small><b id="meName">—</b></span></button>
+    <div class="spacer"></div>
+    <span class="testv">v6 LOADER</span>
+    <span class="pill" id="pill">···</span>
+    <button class="iconbtn" id="gear">⚙</button>
+  </header>
+  <div class="weeknav">
+    <button class="arr" id="prevW">‹</button>
+    <div class="wlabel"><b id="wRange">—</b><small id="wCount">—</small></div>
+    <button class="arr" id="nextW">›</button>
+  </div>
+  <div class="thisweek"><button id="thisW">Jump to this week</button></div>
+  <main id="days"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"></div>
+
+<div class="login" id="login">
+  <div class="loginbox">
+    <h2>My runs</h2>
+    <p class="loginsub">Sign in to load your schedule.</p>
+    <div class="field"><label>Email</label><input id="lg_email" type="email" autocomplete="username" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input id="lg_pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn go" id="lg_btn">Sign in</button>
+    <div class="loginerr" id="lg_err"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+"use strict";
+
+const APP_VERSION = "6.0.0-loader";
+
+const SUPABASE_URL  = "https://cexzmwucocmqozuqhbeb.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNleHptd3Vjb2NtcW96dXFoYmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0OTg0NDgsImV4cCI6MjA5ODA3NDQ0OH0.xZ_Ms8ciJZuGA1xiZjFOWPt_VtkCdT1xHFxZ3bBQ0uM";
+
+let supa=null;
+try{ const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+     supa = createClient(SUPABASE_URL, SUPABASE_ANON, { auth:{ persistSession:true, autoRefreshToken:true } }); }
+catch(e){ console.warn("Offline — Supabase library unavailable.", e); }
+
+/* ---- loader-based automatic app updates ----
+   Future updates should NOT replace this file in place.
+   Instead, upload a new app-vX.html and update version.json.
+   This avoids iPhone Home Screen cache problems with index.html.
+*/
+const UPDATE_MANIFEST_URL = "./version.json";
+
+async function neutralizeLegacyServiceWorkersAndCaches(){
+  try{
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.unregister().catch(() => null)));
+    }
+  }catch(e){ console.warn("Could not unregister legacy service workers", e); }
+
+  try{
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys
+        .filter(key => key.startsWith("driver-client") || key.startsWith("hfdriver") || key.startsWith("hammerfest"))
+        .map(key => caches.delete(key))
+      );
+    }
+  }catch(e){ console.warn("Could not clear legacy caches", e); }
+}
+
+function appUrlFromVersionInfo(info){
+  const appFile = String(info.app || "app-v6.html");
+  const latest = String(info.version || "").trim();
+  const url = new URL(appFile, window.location.href);
+  if (latest) url.searchParams.set("v", latest);
+  url.searchParams.set("from", APP_VERSION);
+  url.searchParams.set("t", Date.now());
+  return url.href;
+}
+
+async function checkForNewAppVersion(){
+  try{
+    const res = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, {
+      cache:"no-store",
+      headers:{ "Cache-Control":"no-cache" }
+    });
+    if (!res.ok) return;
+
+    const info = await res.json();
+    const latest = String(info.version || "").trim();
+    if (!latest || latest === APP_VERSION) return;
+
+    await neutralizeLegacyServiceWorkersAndCaches();
+    window.__driverReloading = true;
+    window.location.replace(appUrlFromVersionInfo(info));
+  }catch(e){
+    console.warn("Version check failed", e);
+  }
+}
+
+window.addEventListener("load", async () => {
+  await neutralizeLegacyServiceWorkersAndCaches();
+  await checkForNewAppVersion();
+  setInterval(checkForNewAppVersion, 120000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkForNewAppVersion();
+  });
+  window.addEventListener("pageshow", checkForNewAppVersion);
+});
+
+/* ---- storage (device-only: prefs + cache) ---- */
+const Store=(()=>{ let mem={},ls=false; try{localStorage.setItem("__t","1");localStorage.removeItem("__t");ls=true;}catch(e){}
+  return { get:k=>{try{return ls?localStorage.getItem(k):(mem[k]??null);}catch(e){return mem[k]??null;}},
+           set:(k,v)=>{try{ls?localStorage.setItem(k,v):(mem[k]=v);}catch(e){mem[k]=v;}} }; })();
+const PKEY="hfdriver.prefs", CKEY="hfdriver.cache";
+const defaults={ enabled:true, leadMinutes:60, nightBefore:true, nightBeforeHour:20, earlyThreshold:"09:00", theme:"dark", driver:null };
+let prefs={...defaults, ...(JSON.parse(Store.get(PKEY)||"{}"))};
+const savePrefs=()=>Store.set(PKEY, JSON.stringify(prefs));
+let bookings=JSON.parse(Store.get(CKEY)||"[]");
+const saveCache=()=>Store.set(CKEY, JSON.stringify(bookings));
+
+/* ---- date helpers ---- */
+const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], DNL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseIso=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const startOfWeek=d=>addDays(d,-((d.getDay()+6)%7));
+const minutesOf=t=>{const[h,m]=t.split(":").map(Number);return h*60+m;};
+const todayIso=()=>iso(new Date());
+
+function colorFor(name){ if(!name)return"#3ea0ff"; let h=0; for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;
+  return ["#3ea0ff","#9b8cff","#ff8fb4","#7ad0a8","#ffc266","#5fd3d0","#f08c6b","#b6d36b","#d59bff","#69b7ff","#ffa6a6","#8fd6a0"][h%12]; }
+
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s??"").replace(/</g,"&lt;");
+
+let week=startOfWeek(new Date());
+let online=false;
+const setPill=s=>{const p=$("#pill");p.className="pill "+(s==="live"?"live":s==="off"?"off":"");p.textContent=s==="live"?"● Live":s==="off"?"⚠ Offline":"··· sync";};
+
+/* ---- cloud (read-only) ---- */
+async function pullAll(){
+  setPill("sync");
+  try{ const {data,error}=await supa.from("bookings").select("*"); if(error) throw error;
+       bookings=data.map(r=>({...r,drivers:r.drivers||[]})); saveCache(); online=true; setPill("live"); render(); }
+  catch(e){ online=false; setPill("off"); render(); }
+}
+function subscribe(){
+  if(!supa) return;
+  supa.channel("driver-stream").on("postgres_changes",{event:"*",schema:"public",table:"bookings"},p=>{
+    const {eventType,new:row,old}=p;
+    if(eventType==="DELETE") bookings=bookings.filter(x=>x.id!==old.id);
+    else { const r={...row,drivers:row.drivers||[]}; const i=bookings.findIndex(x=>x.id===r.id); if(i>=0)bookings[i]=r; else bookings.push(r); }
+    saveCache(); render();
+  }).subscribe();
+}
+
+/* ---- render ---- */
+const myRuns=ds=>bookings.filter(b=>b.date===ds && (b.drivers||[]).includes(prefs.driver)).sort((a,b)=>minutesOf(a.time)-minutesOf(b.time));
+
+function render(){
+  $("#meName").textContent=prefs.driver||"—";
+  $("#meDot").style.background=colorFor(prefs.driver);
+  applyTheme();
+  const end=addDays(week,6);
+  $("#wRange").textContent=`${week.getDate()} ${MN[week.getMonth()]} – ${end.getDate()} ${MN[end.getMonth()]}`;
+
+  const wrap=$("#days"); wrap.innerHTML=""; let total=0;
+  if(!prefs.driver){ $("#wCount").textContent="—"; return; }
+  for(let i=0;i<7;i++){
+    const d=addDays(week,i), ds=iso(d), jobs=myRuns(ds); total+=jobs.length;
+    const isToday=ds===todayIso(), early=jobs.some(j=>minutesOf(j.time)<minutesOf(prefs.earlyThreshold));
+    const card=el("div","day"+(isToday?" today":"")+(jobs.length?"":" free"));
+    card.append(el("div","dayhd",
+      `<span class="dn">${DNL[d.getDay()]} ${d.getDate()}.${isToday?'<span class="td">today</span>':''}</span>${early?'<span class="early">early</span>':""}`));
+    if(!jobs.length) card.append(el("div","nojobs","No runs"));
+    jobs.forEach(b=>{
+      const j=el("button","job"); j.style.setProperty("--c",colorFor(prefs.driver));
+      j.innerHTML=`<span class="jt">${b.time}</span><span class="jr">${esc(b.route)}${b.ship?` · ⚓ ${esc(b.ship)}`:""}</span>${b.pax!=null?`<span class="jp">${b.pax}</span>`:""}`;
+      j.onclick=()=>openDetail(b); card.append(j);
+    });
+    wrap.append(card);
+  }
+  $("#wCount").textContent = total ? `${total} run${total>1?"s":""} this week` : "no runs this week";
+}
+
+/* ---- sheets ---- */
+const scrim=$("#scrim"), sheet=$("#sheet");
+function openSheet(html){ sheet.innerHTML=`<div class="grab"></div>`+html; scrim.classList.add("show"); requestAnimationFrame(()=>sheet.classList.add("show")); }
+function closeSheet(){ sheet.classList.remove("show"); scrim.classList.remove("show"); }
+scrim.onclick=closeSheet;
+
+function openDetail(b){
+  const co=(b.drivers||[]).filter(x=>x!==prefs.driver);
+  openSheet(`
+    <h3>${esc(b.route)}</h3>
+    <div class="sub">${DNL[parseIso(b.date).getDay()]} ${parseIso(b.date).getDate()} ${MN[parseIso(b.date).getMonth()]}</div>
+    <div class="kv">
+      <dt>Time</dt><dd>${b.time}</dd>
+      ${b.ship?`<dt>Ship</dt><dd>⚓ ${esc(b.ship)}</dd>`:""}
+      <dt>Pax</dt><dd>${b.pax!=null?b.pax:"—"}</dd>
+      ${co.length?`<dt>With</dt><dd>${co.map(x=>`<span class="chip" style="background:${colorFor(x)}"><i></i>${esc(x)}</span>`).join(" ")}</dd>`:""}
+      ${b.notes?`<dt>Notes</dt><dd>${esc(b.notes)}</dd>`:""}
+    </div>`);
+}
+
+function openSettings(){
+  const p=prefs;
+  openSheet(`
+    <h3>Settings</h3>
+    <div class="sub">Version 6.0.0-loader. Reminders fire while this app is open. Background alerts arrive once it's installed to your home screen.</div>
+    <div class="setrow"><div class="lab"><b>Reminders</b><small>Master switch.</small></div>
+      <label class="switch"><input type="checkbox" id="s_en" ${p.enabled?"checked":""}><span class="slider"></span></label></div>
+    <div class="setrow"><div class="lab"><b>Remind me before each run</b><small>Minutes before departure.</small></div>
+      <input type="number" id="s_lead" min="0" value="${p.leadMinutes}"></div>
+    <div class="setrow"><div class="lab"><b>Night-before for early runs</b><small>For runs before ${p.earlyThreshold}.</small></div>
+      <label class="switch"><input type="checkbox" id="s_nb" ${p.nightBefore?"checked":""}><span class="slider"></span></label></div>
+    <div class="setrow"><div class="lab"><b>Night-before time</b><small>Evening hour (24h).</small></div>
+      <input type="number" id="s_nbh" min="0" max="23" value="${p.nightBeforeHour}"></div>
+    <div class="setrow"><div class="lab"><b>Light theme</b><small>Switch colours.</small></div>
+      <label class="switch"><input type="checkbox" id="s_th" ${p.theme==="light"?"checked":""}><span class="slider"></span></label></div>
+    <div class="btnrow">
+      <button class="btn" id="s_test">Test alert</button>
+      <button class="btn go" id="s_sim">Preview my reminders</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="s_chg">Change driver</button>
+      <button class="btn danger" id="s_out">Sign out</button>
+    </div>`);
+  const bind=(id,key,bool)=>{ const inp=$(id); inp.onchange=e=>{ p[key]= bool ? e.target.checked : Math.max(0,parseInt(e.target.value||0,10)); savePrefs(); if(key==="theme")applyTheme(); }; };
+  bind("#s_en","enabled",true); bind("#s_lead","leadMinutes"); bind("#s_nb","nightBefore",true); bind("#s_nbh","nightBeforeHour");
+  $("#s_th").onchange=e=>{ p.theme=e.target.checked?"light":"dark"; savePrefs(); applyTheme(); };
+  $("#s_test").onclick=()=>ensurePerm().then(()=>notify("Test alert","Reminders are working in this session."));
+  $("#s_sim").onclick=simulate;
+  $("#s_chg").onclick=openDriverPick;
+  $("#s_out").onclick=async()=>{ if(supa) await supa.auth.signOut(); closeSheet(); showLogin("Signed out."); };
+}
+
+function openDriverPick(){
+  const known=[...new Set(bookings.flatMap(b=>b.drivers||[]))].sort((a,b)=>a.localeCompare(b));
+  const rows=known.map(n=>`<button class="pickrow" data-n="${esc(n)}"><span class="dot" style="background:${colorFor(n)}"></span>${esc(n)}</button>`).join("");
+  openSheet(`
+    <h3>Who are you?</h3>
+    <div class="sub">Pick your name, or type it if it isn't listed yet.</div>
+    ${rows||'<div class="sub">No drivers on the schedule yet.</div>'}
+    <div class="addme"><input id="pk_new" placeholder="Type your name…" autocomplete="off"><button class="btn go" id="pk_add" style="flex:none">Use</button></div>`);
+  sheet.querySelectorAll(".pickrow").forEach(r=>r.onclick=()=>setDriver(r.dataset.n));
+  const add=()=>{ const v=$("#pk_new").value.trim(); if(v) setDriver(v); };
+  $("#pk_add").onclick=add; $("#pk_new").onkeydown=e=>{ if(e.key==="Enter") add(); };
+}
+function setDriver(name){ prefs.driver=name; savePrefs(); closeSheet(); render(); ensurePerm(); }
+
+/* ---- theme ---- */
+function applyTheme(){ document.body.classList.toggle("light", prefs.theme==="light"); }
+
+/* ---- notifications ---- */
+function notify(title,body){ pushToast(title,body); try{ if("Notification"in window && Notification.permission==="granted") new Notification(title,{body}); }catch(e){} }
+function pushToast(title,body){ const t=el("div","toast",`<b>${esc(title)}</b><span>${esc(body)}</span>`); $("#toasts").append(t);
+  setTimeout(()=>{t.style.opacity="0";t.style.transition="opacity .4s";setTimeout(()=>t.remove(),400);},6000); }
+async function ensurePerm(){ if(!("Notification"in window))return false; if(Notification.permission==="granted")return true;
+  if(Notification.permission!=="denied"){ try{ return (await Notification.requestPermission())==="granted"; }catch(e){} } return false; }
+
+function reminderEvents(b){
+  const dep=parseIso(b.date); const[h,mn]=b.time.split(":").map(Number); dep.setHours(h,mn,0,0); const out=[];
+  if(prefs.leadMinutes>0) out.push({at:new Date(dep.getTime()-prefs.leadMinutes*60000),key:b.id+"_lead",
+    title:`Run in ${prefs.leadMinutes} min`,body:`${b.time} · ${b.route}${b.pax!=null?` · ${b.pax} pax`:""}`});
+  if(prefs.nightBefore && minutesOf(b.time)<minutesOf(prefs.earlyThreshold)){ const e=addDays(dep,-1); e.setHours(prefs.nightBeforeHour,0,0,0);
+    out.push({at:e,key:b.id+"_night",title:`Early start tomorrow — ${b.time}`,body:`${b.route}${b.pax!=null?` · ${b.pax} pax`:""}`}); }
+  return out;
+}
+const fired=new Set();
+function tick(){ if(!prefs.driver||!prefs.enabled)return; const now=Date.now();
+  bookings.filter(b=>(b.drivers||[]).includes(prefs.driver)).forEach(b=>reminderEvents(b).forEach(ev=>{
+    const dt=now-ev.at.getTime(); if(dt>=0&&dt<60000&&!fired.has(ev.key)){fired.add(ev.key);notify(ev.title,ev.body);} })); }
+setInterval(tick,20000);
+
+async function simulate(){
+  if(!prefs.driver){ pushToast("Pick a driver","Choose your name first."); return; }
+  await ensurePerm();
+  let jobs=myRuns(todayIso());
+  if(!jobs.length) for(let i=0;i<7;i++){ const j=myRuns(iso(addDays(week,i))); if(j.length){jobs=j;break;} }
+  if(!jobs.length){ pushToast("Nothing to preview","No runs in view."); return; }
+  let n=0; jobs.forEach(b=>reminderEvents(b).forEach(ev=>setTimeout(()=>notify(ev.title,ev.body),(n++)*900)));
+  if(!n) pushToast("No reminders","Current settings produce no alerts for these runs.");
+}
+
+/* ---- auth ---- */
+const loginEl=$("#login");
+function showLogin(msg){ loginEl.classList.add("show"); if(msg)$("#lg_err").textContent=msg; }
+function hideLogin(){ loginEl.classList.remove("show"); $("#lg_err").textContent=""; }
+async function startSession(){ hideLogin(); await pullAll(); subscribe();
+  if(!prefs.driver) openDriverPick(); else ensurePerm(); }
+
+$("#lg_btn").onclick=async()=>{ const email=$("#lg_email").value.trim(), password=$("#lg_pass").value;
+  $("#lg_err").textContent=""; $("#lg_btn").textContent="Signing in…";
+  const {error}=await supa.auth.signInWithPassword({email,password}); $("#lg_btn").textContent="Sign in";
+  if(error){ $("#lg_err").textContent=error.message; return; } startSession(); };
+$("#lg_pass").onkeydown=e=>{ if(e.key==="Enter")$("#lg_btn").click(); };
+
+/* ---- nav + boot ---- */
+$("#prevW").onclick=()=>{week=addDays(week,-7);render();};
+$("#nextW").onclick=()=>{week=addDays(week,7);render();};
+$("#thisW").onclick=()=>{week=startOfWeek(new Date());render();};
+$("#gear").onclick=openSettings;
+$("#meBtn").onclick=openDriverPick;
+
+async function boot(){
+  applyTheme(); render();
+  if(!supa){ online=false; setPill("off"); pushToast("Offline","Couldn’t load sync — showing cached runs."); return; }
+  const {data:{session}}=await supa.auth.getSession();
+  if(session) startSession(); else showLogin();
+}
+boot();
+</script>
+</body>
+</html>

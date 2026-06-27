@@ -1,7 +1,7 @@
 {
   "name": "Driver \u2014 My Runs",
   "short_name": "Driver",
-  "start_url": "./index.html?v=5.0.0-normal-hard-update",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f1620",
