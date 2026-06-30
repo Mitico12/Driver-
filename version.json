@@ -1,7 +1,7 @@
 {
-  "version": "7.0.0-loader-test",
+  "version": "7.2.0-advanced-dispatcher",
   "app": "app-v7.html",
-  "label": "Purple loader test v7",
-  "released_at": "2026-06-27T00:06:27.072919Z",
-  "notes": "Future-update test package. Keeps index.html stable; version.json points to app-v7.html."
+  "label": "Hotel Dispatcher Update v7.2",
+  "released_at": "2026-06-30T04:13:00Z",
+  "notes": "Add double-booking alerts, passenger capacity warnings, route search, unassigned filters, and driver duty toggles."
 }
